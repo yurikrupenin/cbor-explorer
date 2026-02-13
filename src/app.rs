@@ -15,6 +15,8 @@ pub enum Focus {
 pub enum PopupMode {
     None,
     ThemeSelect,
+    Search,
+    GotoOffset,
 }
 
 pub struct App {
@@ -38,6 +40,11 @@ pub struct App {
     pub popups: PopupMode,
     pub show_popup: bool, // Toggle detail popup visibility
     pub themes: Vec<Theme>,
+    // Search state
+    pub search_input: String,
+    pub search_cursor_position: usize,
+    pub search_error: Option<String>,
+    pub last_search_query: Option<String>,
 }
 
 impl App {
@@ -91,13 +98,28 @@ impl App {
                 Theme::github_light(),
                 Theme::github_dark(),
             ],
+            search_input: String::new(),
+            search_cursor_position: 0,
+            search_error: None,
+            last_search_query: None,
         })
     }
 
     pub fn toggle_focus(&mut self) {
         self.focus = match self.focus {
-            Focus::Tree => Focus::Hex,
-            Focus::Hex => Focus::Tree,
+            Focus::Tree => {
+                // Sync Hex cursor to Tree selection
+                if let Some(node) = self.get_selected_node() {
+                    self.hex_selected = node.range.start;
+                    self.adjust_hex_scroll();
+                }
+                Focus::Hex
+            }
+            Focus::Hex => {
+                // Tree selection is already synced during hex navigation, but ensure visibility
+                self.adjust_tree_scroll();
+                Focus::Tree
+            }
         };
     }
 
@@ -385,7 +407,207 @@ impl App {
         })
     }
 
+    pub fn open_search(&mut self) {
+        self.popups = PopupMode::Search;
+        self.search_input.clear();
+        self.search_cursor_position = 0;
+        self.search_error = None;
+    }
 
+    pub fn open_goto(&mut self) {
+        self.popups = PopupMode::GotoOffset;
+        self.search_input.clear();
+        self.search_cursor_position = 0;
+        self.search_error = None;
+    }
+
+    pub fn close_popup(&mut self) {
+        self.popups = PopupMode::None;
+        self.search_error = None;
+    }
+
+    pub fn enter_char(&mut self, c: char) {
+        if self.popups == PopupMode::Search || self.popups == PopupMode::GotoOffset {
+            self.search_input.insert(self.search_cursor_position, c);
+            self.search_cursor_position += 1;
+        }
+    }
+
+    pub fn delete_char(&mut self) {
+        if (self.popups == PopupMode::Search || self.popups == PopupMode::GotoOffset) && self.search_cursor_position > 0 {
+            self.search_input.remove(self.search_cursor_position - 1);
+            self.search_cursor_position -= 1;
+        }
+    }
+
+    pub fn move_cursor_left(&mut self) {
+        if (self.popups == PopupMode::Search || self.popups == PopupMode::GotoOffset) && self.search_cursor_position > 0 {
+            self.search_cursor_position -= 1;
+        }
+    }
+
+    pub fn move_cursor_right(&mut self) {
+        if (self.popups == PopupMode::Search || self.popups == PopupMode::GotoOffset) && self.search_cursor_position < self.search_input.len() {
+            self.search_cursor_position += 1;
+        }
+    }
+
+    pub fn submit_input(&mut self) {
+        match self.popups {
+            PopupMode::Search => self.submit_search(),
+            PopupMode::GotoOffset => self.submit_goto(),
+            _ => {}
+        }
+    }
+
+    fn submit_search(&mut self) {
+        if self.search_input.is_empty() {
+             self.close_popup();
+             return;
+        }
+
+        let query = self.search_input.clone();
+        self.last_search_query = Some(query.clone());
+        self.execute_search(&query, true); // true = forward
+        if self.search_error.is_none() {
+            self.close_popup();
+        }
+    }
+
+    fn submit_goto(&mut self) {
+         if self.search_input.is_empty() {
+             self.close_popup();
+             return;
+        }
+        
+        // Parse input
+        let input = self.search_input.trim();
+        let offset = if input.starts_with("0x") || input.starts_with("0X") {
+            usize::from_str_radix(&input[2..], 16)
+        } else {
+            input.parse::<usize>()
+        };
+
+        match offset {
+            Ok(off) => {
+                if off < self.raw_bytes.len() {
+                    self.focus = Focus::Hex;
+                    self.hex_selected = off;
+                    self.adjust_hex_scroll();
+                    self.update_tree_selection_from_hex();
+                    self.close_popup();
+                } else {
+                    self.search_error = Some("Offset out of bounds".to_string());
+                }
+            },
+            Err(_) => {
+                self.search_error = Some("Invalid number".to_string());
+            }
+        }
+    }
+    
+    pub fn find_next(&mut self) {
+        if let Some(query) = self.last_search_query.clone() {
+            self.execute_search(&query, true);
+        }
+    }
+
+    pub fn find_previous(&mut self) {
+        if let Some(query) = self.last_search_query.clone() {
+             self.execute_search(&query, false);
+        }
+    }
+
+    fn execute_search(&mut self, query: &str, forward: bool) {
+        let current_range_start = if let Some(node) = self.get_selected_node() {
+            node.range.start
+        } else {
+            0
+        };
+
+        let found_node_offset = if let Some(tree) = &self.tree {
+            let all_nodes = tree.flatten_all();
+            let query_lower = query.to_lowercase();
+            
+            let current_idx = all_nodes.iter().position(|n| n.range.start == current_range_start).unwrap_or(0);
+            
+            let mut result = None;
+            
+            if forward {
+                // Search forward
+                let start_idx = current_idx + 1;
+                
+                // First pass: from next to end
+                for node in all_nodes.iter().skip(start_idx) {
+                     if self.node_matches_query(node, &query_lower) {
+                        result = Some(node.range.start);
+                        break;
+                    }
+                }
+                
+                // Wrap around: from start to current
+                if result.is_none() {
+                     for node in all_nodes.iter().take(start_idx) {
+                        if self.node_matches_query(node, &query_lower) {
+                            result = Some(node.range.start);
+                            break;
+                        }
+                    }
+                }
+            } else {
+                // Backward
+                let mut indices: Vec<usize> = Vec::new();
+                if current_idx > 0 {
+                    indices.extend((0..current_idx).rev());
+                }
+                indices.extend((current_idx..all_nodes.len()).rev()); // Wrap around
+                
+                for i in indices {
+                     if self.node_matches_query(all_nodes[i], &query_lower) {
+                        result = Some(all_nodes[i].range.start);
+                        break;
+                    }
+                }
+            }
+            result
+        } else {
+            None
+        };
+
+        if let Some(offset) = found_node_offset {
+             if let Some(tree) = &mut self.tree {
+                // 1. Expand path to this node
+                tree.expand_path_to_offset(offset);
+                
+                // 2. Re-flatten visible nodes to find the new tree_selected index
+                let flat = tree.flatten();
+                if let Some(new_idx) = flat.iter().position(|n| n.range.start == offset) {
+                    self.tree_selected = new_idx;
+                }
+             }
+             // Update UI state
+             self.focus = Focus::Tree;
+             self.adjust_tree_scroll();
+             self.search_error = None;
+        } else {
+            self.search_error = Some(format!("'{}' not found", query));
+        }
+    }
+
+    fn node_matches_query(&self, node: &CborNode, query: &str) -> bool {
+        if let Some(key) = &node.key {
+            if key.to_lowercase().contains(query) {
+                return true;
+            }
+        }
+        if node.value_preview.to_lowercase().contains(query) {
+            return true;
+        }
+        if node.full_value.to_lowercase().contains(query) {
+            return true;
+        }
+        false
+    }
 }
 
 

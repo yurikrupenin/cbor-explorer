@@ -69,6 +69,15 @@ impl CborNode {
         result
     }
 
+    /// Get all nodes as a flat list, ignoring expanded state
+    pub fn flatten_all(&self) -> Vec<&CborNode> {
+        let mut result = vec![self];
+        for child in &self.children {
+            result.extend(child.flatten_all());
+        }
+        result
+    }
+
     /// Get mutable reference to node at given flat index
     pub fn get_node_at_index_mut(&mut self, target_index: usize) -> Option<&mut CborNode> {
         let mut current_index = 0;

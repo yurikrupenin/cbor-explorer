@@ -59,6 +59,8 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
         draw_help_overlay(frame, app, size);
     } else if app.popups == PopupMode::ThemeSelect {
         draw_theme_dialog(frame, app, size);
+    } else if app.popups == PopupMode::Search || app.popups == PopupMode::GotoOffset {
+        draw_input_dialog(frame, app, size);
     }
 }
 
@@ -414,6 +416,8 @@ fn draw_shortcuts_bar(frame: &mut Frame, app: &App, area: Rect) {
         ("Tab", "Switch View"),
         ("x", "Hex/Dec"),
         ("t", "Theme"),
+        ("/", "Search"),
+        (":", "Go to"),
         ("Space", "Popup"),
     ];
 
@@ -774,6 +778,63 @@ fn draw_theme_dialog(frame: &mut Frame, app: &App, area: Rect) {
         .bg(app.theme.popup_bg);
 
     let p = Paragraph::new(lines).block(block);
+    frame.render_widget(p, rect);
+}
+
+fn draw_input_dialog(frame: &mut Frame, app: &App, area: Rect) {
+    let width = 60;
+    let height = 3;
+    let x = (area.width.saturating_sub(width)) / 2;
+    let y = (area.height.saturating_sub(height)) / 2;
+    let rect = Rect::new(x, y, width, height);
+    
+    frame.render_widget(Clear, rect);
+
+    let (title, prompt) = match app.popups {
+        PopupMode::Search => (" Search ", "/"),
+        PopupMode::GotoOffset => (" Go to Offset ", ":"),
+        _ => return,
+    };
+
+    let border_color = if app.search_error.is_some() {
+        Color::Red
+    } else {
+        app.theme.border_focused
+    };
+
+    let block = Block::default()
+        .title(title)
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(border_color))
+        .bg(app.theme.popup_bg);
+
+    let mut text = vec![
+        Span::styled(format!("{} ", prompt), Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
+        Span::raw(&app.search_input),
+    ];
+    
+    // Show cursor
+    // Since we are not in main loop here, we just render the text. 
+    // We can simulate cursor by adding a block cursor at the position?
+    // Ratatui doesn't have a built-in text field widget with cursor management easily exposed in a single call,
+    // but `Paragraph` is fine. We can just modify the text or use `frame.set_cursor`.
+    
+    // Let's use frame.set_cursor for the real cursor effect
+    let cursor_x = rect.x + 1 + prompt.len() as u16 + app.search_cursor_position as u16;
+    let cursor_y = rect.y + 1;
+    frame.set_cursor(cursor_x, cursor_y);
+
+    if let Some(err) = &app.search_error {
+         let err_len = err.len() as u16;
+         let err_x = (rect.x + rect.width).saturating_sub(err_len + 2);
+         // Can't easily overlay text in same line with Paragraph logic without complex spans, 
+         // so maybe just change title or border color? I did border color. 
+         // Let's also add the error text to the right side of the block title if possible, 
+         // or just append it to the text if there is space? 
+         // Actually, let's just make the border red.
+    }
+
+    let p = Paragraph::new(Line::from(text)).block(block);
     frame.render_widget(p, rect);
 }
 
