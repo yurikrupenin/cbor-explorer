@@ -33,8 +33,8 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
 
     // Left side: Tree view
     let left_area = main_chunks[0];
-    app.visible_tree_height = left_area.height as usize;
-    app.visible_hex_height = main_chunks[1].height as usize;
+    app.visible_tree_height = (left_area.height as usize).saturating_sub(config::BORDER_HEIGHT_ADJUSTMENT);
+    app.visible_hex_height = (main_chunks[1].height as usize).saturating_sub(config::BORDER_HEIGHT_ADJUSTMENT);
 
     draw_tree_view(frame, app, left_area);
     draw_hex_view(frame, app, main_chunks[1]);
