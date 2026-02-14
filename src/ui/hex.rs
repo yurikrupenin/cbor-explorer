@@ -1,0 +1,243 @@
+use crate::app::{App, Focus};
+use crate::cbor_tree::CborNode;
+use crate::config::{self, BYTES_PER_ROW};
+use color_eyre::Result;
+use crossterm::event::{KeyCode, KeyEvent};
+use ratatui::{
+    layout::Rect,
+    style::{Color, Modifier, Style, Stylize},
+    text::{Line, Span},
+    widgets::{Block, Borders, Paragraph},
+    Frame,
+};
+
+pub fn handle_input(app: &mut App, key: KeyEvent) -> Result<()> {
+    match key.code {
+        KeyCode::Up | KeyCode::Char('k') => {
+            if app.hex_selected >= BYTES_PER_ROW {
+                app.hex_selected -= BYTES_PER_ROW;
+            } else {
+                app.hex_selected = 0;
+            }
+            app.adjust_hex_scroll();
+            app.update_tree_selection_from_hex();
+        }
+        KeyCode::Down | KeyCode::Char('j') => {
+            let max = app.raw_bytes.len().saturating_sub(1);
+            if app.hex_selected + BYTES_PER_ROW <= max {
+                app.hex_selected += BYTES_PER_ROW;
+            } else {
+                app.hex_selected = max;
+            }
+            app.adjust_hex_scroll();
+            app.update_tree_selection_from_hex();
+        }
+        KeyCode::Left | KeyCode::Char('h') => {
+            if app.hex_selected > 0 {
+                app.hex_selected -= 1;
+                app.adjust_hex_scroll();
+                app.update_tree_selection_from_hex();
+            }
+        }
+        KeyCode::Right | KeyCode::Char('l') => {
+            if app.hex_selected < app.raw_bytes.len().saturating_sub(1) {
+                app.hex_selected += 1;
+                app.adjust_hex_scroll();
+                app.update_tree_selection_from_hex();
+            }
+        }
+        KeyCode::Home | KeyCode::Char('g') => {
+            app.hex_selected = 0;
+            app.hex_offset = 0;
+            app.update_tree_selection_from_hex();
+        }
+        KeyCode::End | KeyCode::Char('G') => {
+            app.hex_selected = app.raw_bytes.len().saturating_sub(1);
+            app.adjust_hex_scroll();
+            app.update_tree_selection_from_hex();
+        }
+        KeyCode::PageUp => {
+            let page_size = app.visible_hex_height.saturating_sub(2) * BYTES_PER_ROW;
+            app.hex_selected = app.hex_selected.saturating_sub(page_size);
+            app.adjust_hex_scroll();
+            app.update_tree_selection_from_hex();
+        }
+        KeyCode::PageDown => {
+            let max = app.raw_bytes.len().saturating_sub(1);
+            let page_size = app.visible_hex_height.saturating_sub(2) * BYTES_PER_ROW;
+            app.hex_selected = (app.hex_selected + page_size).min(max);
+            app.adjust_hex_scroll();
+            app.update_tree_selection_from_hex();
+        }
+        _ => {}
+    }
+    Ok(())
+}
+
+pub fn draw(frame: &mut Frame, app: &App, area: Rect) {
+    let is_focused = app.focus == Focus::Hex;
+    let border_style = if is_focused {
+        Style::default().fg(app.theme.border_focused)
+    } else {
+        Style::default().fg(app.theme.border_unfocused)
+    };
+
+    let block = Block::default()
+        .title(Span::styled(
+            format!(" Hex View - {} bytes ", app.raw_bytes.len()),
+            Style::default()
+                .fg(app.theme.header_fg)
+                .add_modifier(Modifier::BOLD),
+        ))
+        .borders(Borders::ALL)
+        .border_style(border_style)
+        .bg(app.theme.bg);
+
+    let inner = block.inner(area);
+    frame.render_widget(block, area);
+
+    let visible_rows = inner.height as usize;
+    let start_row = app.hex_offset / BYTES_PER_ROW;
+
+    // Determine the highlight path based on focus
+    let highlight_path: Vec<&CborNode> = if let Some(tree) = &app.tree {
+        match app.focus {
+            Focus::Tree => {
+                if let Some(node) = app.get_selected_node() {
+                    tree.get_path_to_offset(node.range.start)
+                } else {
+                    Vec::new()
+                }
+            }
+            Focus::Hex => tree.get_path_to_offset(app.hex_selected),
+        }
+    } else {
+        Vec::new()
+    };
+
+    // Reverse highlight path to search from deepest to root
+    let highlight_priorities: Vec<&CborNode> = highlight_path.into_iter().rev().collect();
+
+    let mut lines: Vec<Line> = Vec::new();
+
+    for row in start_row..(start_row + visible_rows) {
+        let offset = row * BYTES_PER_ROW;
+        if offset >= app.raw_bytes.len() {
+            break;
+        }
+
+        lines.push(draw_hex_row(offset, app, &highlight_priorities, is_focused));
+    }
+
+    let paragraph = Paragraph::new(lines).style(Style::default().bg(app.theme.bg));
+    frame.render_widget(paragraph, inner);
+}
+
+fn draw_hex_row(
+    offset: usize,
+    app: &App,
+    highlight_priorities: &[&CborNode],
+    is_focused: bool,
+) -> Line<'static> {
+    let mut spans: Vec<Span> = vec![Span::styled(
+        format!("{:08x}  ", offset),
+        Style::default().fg(Color::DarkGray),
+    )];
+
+    // Hex bytes
+    for col in 0..BYTES_PER_ROW {
+        let byte_idx = offset + col;
+        if byte_idx < app.raw_bytes.len() {
+            let byte = app.raw_bytes[byte_idx];
+            let byte_type = config::get_byte_type(byte);
+
+            // Default color from byte type
+            let base_color = match byte_type {
+                config::ByteType::Null => app.theme.byte_colors.null,
+                config::ByteType::AsciiPrintable => app.theme.byte_colors.ascii_printable,
+                config::ByteType::AsciiWhitespace => app.theme.byte_colors.ascii_whitespace,
+                config::ByteType::AsciiOther => app.theme.byte_colors.ascii_other,
+                config::ByteType::NonAscii => app.theme.byte_colors.non_ascii,
+            };
+
+            let mut bg_color = app.theme.bg;
+            let mut fg_color = base_color;
+
+            // Apply Tree Selection Highlighting
+            if let Some((_idx, node)) = highlight_priorities
+                .iter()
+                .enumerate()
+                .find(|(_, n)| n.range.contains(&byte_idx))
+            {
+                // For Hex bytes, use depth color for FOREGROUND
+                fg_color = app.theme.get_depth_color(node.depth);
+            }
+
+            // Apply Cursor Highlighting
+            if is_focused && byte_idx == app.hex_selected {
+                bg_color = app.theme.selection_fg;
+                fg_color = app.theme.selection_bg;
+            }
+
+            let style = Style::default().fg(fg_color).bg(bg_color);
+
+            spans.push(Span::styled(format!("{:02x}", byte), style));
+            spans.push(Span::raw(" "));
+        } else {
+            spans.push(Span::raw("   "));
+        }
+
+        if col == 7 {
+            spans.push(Span::raw(" "));
+        }
+    }
+
+    spans.push(Span::raw(" │ "));
+
+    // ASCII representation
+    for col in 0..BYTES_PER_ROW {
+        let byte_idx = offset + col;
+        if byte_idx < app.raw_bytes.len() {
+            let byte = app.raw_bytes[byte_idx];
+            let ch = if byte.is_ascii_graphic() || byte == b' ' {
+                byte as char
+            } else {
+                '.'
+            };
+
+            let byte_type = config::get_byte_type(byte);
+            let base_color = match byte_type {
+                config::ByteType::Null => app.theme.byte_colors.null,
+                config::ByteType::AsciiPrintable => app.theme.byte_colors.ascii_printable,
+                config::ByteType::AsciiWhitespace => app.theme.byte_colors.ascii_whitespace,
+                config::ByteType::AsciiOther => app.theme.byte_colors.ascii_other,
+                config::ByteType::NonAscii => app.theme.byte_colors.non_ascii,
+            };
+
+            let mut bg_color = app.theme.bg;
+            let mut fg_color = base_color;
+
+            if let Some((_idx, node)) = highlight_priorities
+                .iter()
+                .enumerate()
+                .find(|(_, n)| n.range.contains(&byte_idx))
+            {
+                // For ASCII text, use depth color for BACKGROUND
+                bg_color = app.theme.get_depth_color(node.depth);
+                fg_color = Color::Black; // Contrast against bright depth colors
+            }
+
+            if is_focused && byte_idx == app.hex_selected {
+                bg_color = app.theme.selection_fg;
+                fg_color = app.theme.selection_bg;
+            }
+
+            spans.push(Span::styled(
+                ch.to_string(),
+                Style::default().fg(fg_color).bg(bg_color),
+            ));
+        }
+    }
+
+    Line::from(spans)
+}

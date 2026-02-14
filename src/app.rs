@@ -50,6 +50,7 @@ pub struct App {
     // Config
     pub config_store: Option<ConfigStore>,
     pub config: AppConfig,
+    pub should_quit: bool,
 }
 
 impl App {
@@ -127,6 +128,7 @@ impl App {
             last_search_query: None,
             config_store,
             config,
+            should_quit: false,
         })
     }
 
@@ -192,7 +194,7 @@ impl App {
         self.close_theme_dialog();
     }
 
-    fn save_config(&self) {
+    pub fn save_config(&self) {
         if let Some(store) = &self.config_store {
             store.save(&self.config);
         }
@@ -219,7 +221,7 @@ impl App {
         }
     }
 
-    fn adjust_tree_scroll(&mut self) {
+    pub fn adjust_tree_scroll(&mut self) {
         let scrolloff = 1;
 
         // Ensure cursor is visible with context above
@@ -241,67 +243,7 @@ impl App {
         }
     }
 
-    pub fn move_up(&mut self) {
-        match self.focus {
-            Focus::Tree => {
-                if self.tree_selected > 0 {
-                    self.tree_selected -= 1;
-                    self.adjust_tree_scroll();
-                }
-            }
-            Focus::Hex => {
-                if self.hex_selected >= BYTES_PER_ROW {
-                    self.hex_selected -= BYTES_PER_ROW;
-                } else {
-                    self.hex_selected = 0;
-                }
-                self.adjust_hex_scroll();
-                self.update_tree_selection_from_hex();
-            }
-        }
-    }
-
-    pub fn move_down(&mut self) {
-        match self.focus {
-            Focus::Tree => {
-                if let Some(tree) = &self.tree {
-                    let max = tree.flatten().len().saturating_sub(1);
-                    if self.tree_selected < max {
-                        self.tree_selected += 1;
-                        self.adjust_tree_scroll();
-                    }
-                }
-            }
-            Focus::Hex => {
-                let max = self.raw_bytes.len().saturating_sub(1);
-                if self.hex_selected + BYTES_PER_ROW <= max {
-                    self.hex_selected += BYTES_PER_ROW;
-                } else {
-                    self.hex_selected = max;
-                }
-                self.adjust_hex_scroll();
-                self.update_tree_selection_from_hex();
-            }
-        }
-    }
-
-    pub fn move_left(&mut self) {
-        if self.focus == Focus::Hex && self.hex_selected > 0 {
-            self.hex_selected -= 1;
-            self.adjust_hex_scroll();
-            self.update_tree_selection_from_hex();
-        }
-    }
-
-    pub fn move_right(&mut self) {
-        if self.focus == Focus::Hex && self.hex_selected < self.raw_bytes.len().saturating_sub(1) {
-            self.hex_selected += 1;
-            self.adjust_hex_scroll();
-            self.update_tree_selection_from_hex();
-        }
-    }
-
-    fn update_tree_selection_from_hex(&mut self) {
+    pub fn update_tree_selection_from_hex(&mut self) {
         if let Some(tree) = &mut self.tree {
             // Expand path to selected hex byte
             tree.expand_path_to_offset(self.hex_selected);
@@ -327,7 +269,7 @@ impl App {
         }
     }
 
-    fn adjust_hex_scroll(&mut self) {
+    pub fn adjust_hex_scroll(&mut self) {
         let row = self.hex_selected / BYTES_PER_ROW;
         let visible_rows = self.visible_hex_height.saturating_sub(2);
         let current_offset_row = self.hex_offset / BYTES_PER_ROW;
@@ -347,72 +289,6 @@ impl App {
                         node.expanded = !node.expanded;
                     }
                 }
-            }
-        }
-    }
-
-    pub fn go_to_start(&mut self) {
-        match self.focus {
-            Focus::Tree => {
-                self.tree_selected = 0;
-                self.adjust_tree_scroll();
-            }
-            Focus::Hex => {
-                self.hex_selected = 0;
-                self.hex_offset = 0;
-                self.update_tree_selection_from_hex();
-            }
-        }
-    }
-
-    pub fn go_to_end(&mut self) {
-        match self.focus {
-            Focus::Tree => {
-                if let Some(tree) = &self.tree {
-                    self.tree_selected = tree.flatten().len().saturating_sub(1);
-                    self.adjust_tree_scroll();
-                }
-            }
-            Focus::Hex => {
-                self.hex_selected = self.raw_bytes.len().saturating_sub(1);
-                self.adjust_hex_scroll();
-                self.update_tree_selection_from_hex();
-            }
-        }
-    }
-
-    pub fn page_up(&mut self) {
-        match self.focus {
-            Focus::Tree => {
-                let page_size = self.visible_tree_height.saturating_sub(2);
-                self.tree_selected = self.tree_selected.saturating_sub(page_size);
-                self.adjust_tree_scroll();
-            }
-            Focus::Hex => {
-                let page_size = self.visible_hex_height.saturating_sub(2) * BYTES_PER_ROW;
-                self.hex_selected = self.hex_selected.saturating_sub(page_size);
-                self.adjust_hex_scroll();
-                self.update_tree_selection_from_hex();
-            }
-        }
-    }
-
-    pub fn page_down(&mut self) {
-        match self.focus {
-            Focus::Tree => {
-                if let Some(tree) = &self.tree {
-                    let max = tree.flatten().len().saturating_sub(1);
-                    let page_size = self.visible_tree_height.saturating_sub(2);
-                    self.tree_selected = (self.tree_selected + page_size).min(max);
-                    self.adjust_tree_scroll();
-                }
-            }
-            Focus::Hex => {
-                let max = self.raw_bytes.len().saturating_sub(1);
-                let page_size = self.visible_hex_height.saturating_sub(2) * BYTES_PER_ROW;
-                self.hex_selected = (self.hex_selected + page_size).min(max);
-                self.adjust_hex_scroll();
-                self.update_tree_selection_from_hex();
             }
         }
     }

@@ -69,57 +69,11 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> Result<()> 
                 return Ok(());
             }
 
-            match app.popups {
-                app::PopupMode::ThemeSelect => {
-                    match key.code {
-                        KeyCode::Up | KeyCode::Char('k') => app.move_theme_selection_up(),
-                        KeyCode::Down | KeyCode::Char('j') => app.move_theme_selection_down(),
-                        KeyCode::Enter => app.confirm_theme_selection(),
-                        KeyCode::Esc => app.cancel_theme_selection(),
-                        // Still allow numeric selection for quick access
-                        KeyCode::Char(c) => {
-                            if let Some(digit) = c.to_digit(10) {
-                                if digit > 0 {
-                                    app.apply_theme((digit - 1) as usize);
-                                }
-                            }
-                        }
-                        _ => {}
-                    }
-                }
-                app::PopupMode::Search | app::PopupMode::GotoOffset => match key.code {
-                    KeyCode::Esc => app.close_popup(),
-                    KeyCode::Enter => app.submit_input(),
-                    KeyCode::Char(c) => app.enter_char(c),
-                    KeyCode::Backspace => app.delete_char(),
-                    KeyCode::Left => app.move_cursor_left(),
-                    KeyCode::Right => app.move_cursor_right(),
-                    _ => {}
-                },
-                app::PopupMode::None => match key.code {
-                    KeyCode::Char(config::keys::QUIT) => return Ok(()),
-                    KeyCode::Tab => app.toggle_focus(),
-                    KeyCode::Up | KeyCode::Char('k') => app.move_up(),
-                    KeyCode::Down | KeyCode::Char('j') => app.move_down(),
-                    KeyCode::Left | KeyCode::Char('h') => app.move_left(),
-                    KeyCode::Right | KeyCode::Char('l') => app.move_right(),
-                    KeyCode::Enter => app.toggle_expand(),
-                    KeyCode::Char(' ') => app.toggle_popup(),
-                    KeyCode::Home | KeyCode::Char('g') => app.go_to_start(),
-                    KeyCode::End | KeyCode::Char('G') => app.go_to_end(),
-                    KeyCode::PageUp => app.page_up(),
-                    KeyCode::PageDown => app.page_down(),
-                    KeyCode::Char(config::keys::EXPAND_ALL) => app.expand_all(),
-                    KeyCode::Char(config::keys::COLLAPSE_ALL) => app.collapse_all(),
-                    KeyCode::Char(config::keys::HELP) => app.toggle_help(),
-                    KeyCode::Char(config::keys::TOGGLE_HEX_INT) => app.toggle_hex_integers(),
-                    KeyCode::Char(config::keys::THEME_SELECT) => app.open_theme_dialog(),
-                    KeyCode::Char('/') => app.open_search(),
-                    KeyCode::Char(':') => app.open_goto(),
-                    KeyCode::Char('n') => app.find_next(),
-                    KeyCode::Char('N') => app.find_previous(),
-                    _ => {}
-                },
+            // Delegate input handling to UI widgets
+            ui::handle_input(app, key)?;
+
+            if app.should_quit {
+                return Ok(());
             }
         }
     }
