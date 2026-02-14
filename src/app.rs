@@ -1,5 +1,5 @@
-use crate::cbor_tree::CborNode;
 use crate::cbor_parser::CborParser;
+use crate::cbor_tree::CborNode;
 use crate::config::BYTES_PER_ROW;
 use crate::theme::Theme;
 use color_eyre::Result;
@@ -34,10 +34,10 @@ pub struct App {
     pub visible_hex_height: usize,
     pub file_name: String,
     pub show_help: bool,
-    pub cursor_row: usize,  // Track cursor row for popup positioning
+    pub cursor_row: usize, // Track cursor row for popup positioning
     pub theme: Theme,
     pub original_theme: Option<Theme>, // Store original theme for cancelling selection
-    pub theme_index: usize, // Current selection index in dialog
+    pub theme_index: usize,            // Current selection index in dialog
     pub show_hex_integers: bool,
     pub popups: PopupMode,
     pub show_popup: bool, // Toggle detail popup visibility
@@ -64,9 +64,7 @@ impl App {
         let (tree, parse_error) = {
             let mut parser = CborParser::new(&raw_bytes);
             match parser.parse() {
-                Some(parsed) => {
-                     (Some(parsed.to_node(None, 0, vec![])), None)
-                },
+                Some(parsed) => (Some(parsed.to_node(None, 0, vec![])), None),
                 None => (None, Some("Failed to parse CBOR or empty file".to_string())),
             }
         };
@@ -94,11 +92,12 @@ impl App {
         };
 
         // Apply config
-        let theme = themes.iter()
+        let theme = themes
+            .iter()
             .find(|t| t.name == config.theme)
             .cloned()
             .unwrap_or_else(Theme::tokyo_night);
-        
+
         let show_hex_integers = config.show_hex_integers;
 
         Ok(App {
@@ -118,7 +117,7 @@ impl App {
             theme,
             original_theme: None,
             theme_index: 0,
-            show_hex_integers, 
+            show_hex_integers,
             popups: PopupMode::None,
             show_popup: true,
             themes,
@@ -166,7 +165,7 @@ impl App {
     pub fn open_theme_dialog(&mut self) {
         self.original_theme = Some(self.theme.clone());
         self.popups = PopupMode::ThemeSelect;
-        
+
         // Find current theme index
         if let Some(idx) = self.themes.iter().position(|t| t.name == self.theme.name) {
             self.theme_index = idx;
@@ -174,7 +173,7 @@ impl App {
             self.theme_index = 0;
         }
     }
-    
+
     pub fn close_theme_dialog(&mut self) {
         self.popups = PopupMode::None;
         self.original_theme = None;
@@ -186,7 +185,7 @@ impl App {
             self.theme_index = index;
         }
     }
-    
+
     pub fn confirm_theme_selection(&mut self) {
         self.config.theme = self.theme.name.clone();
         self.save_config();
@@ -198,21 +197,21 @@ impl App {
             store.save(&self.config);
         }
     }
-    
+
     pub fn cancel_theme_selection(&mut self) {
         if let Some(original) = self.original_theme.take() {
             self.theme = original;
         }
         self.popups = PopupMode::None;
     }
-    
+
     pub fn move_theme_selection_up(&mut self) {
         if self.theme_index > 0 {
             self.theme_index -= 1;
             self.apply_theme(self.theme_index);
         }
     }
-    
+
     pub fn move_theme_selection_down(&mut self) {
         if self.theme_index < self.themes.len() - 1 {
             self.theme_index += 1;
@@ -222,23 +221,23 @@ impl App {
 
     fn adjust_tree_scroll(&mut self) {
         let scrolloff = 1;
-        
+
         // Ensure cursor is visible with context above
         if self.tree_selected < self.tree_offset + scrolloff {
-             self.tree_offset = self.tree_selected.saturating_sub(scrolloff);
+            self.tree_offset = self.tree_selected.saturating_sub(scrolloff);
         }
-        
+
         // Ensure cursor is visible with context below
         // visible_tree_height is updated in ui.rs based on inner area height, so it IS the number of visible rows.
         let visible_rows = self.visible_tree_height;
-        
+
         if visible_rows > 0 {
-             let max_visible_idx = self.tree_offset + visible_rows.saturating_sub(1);
-             let bottom_threshold = max_visible_idx.saturating_sub(scrolloff);
-             
-             if self.tree_selected > bottom_threshold {
-                 self.tree_offset += self.tree_selected - bottom_threshold;
-             }
+            let max_visible_idx = self.tree_offset + visible_rows.saturating_sub(1);
+            let bottom_threshold = max_visible_idx.saturating_sub(scrolloff);
+
+            if self.tree_selected > bottom_threshold {
+                self.tree_offset += self.tree_selected - bottom_threshold;
+            }
         }
     }
 
@@ -306,19 +305,19 @@ impl App {
         if let Some(tree) = &mut self.tree {
             // Expand path to selected hex byte
             tree.expand_path_to_offset(self.hex_selected);
-            
-            let flat = tree.flatten(); 
+
+            let flat = tree.flatten();
             // Find the deepest visible node that contains the hex_selected offset
             let mut best_index = None;
             let mut min_len = usize::MAX;
 
             for (i, node) in flat.iter().enumerate() {
                 if node.range.contains(&self.hex_selected) {
-                     let len = node.range.len();
-                     if len < min_len {
-                         min_len = len;
-                         best_index = Some(i);
-                     }
+                    let len = node.range.len();
+                    if len < min_len {
+                        min_len = len;
+                        best_index = Some(i);
+                    }
                 }
             }
 
@@ -436,11 +435,11 @@ impl App {
             flat.get(self.tree_selected).copied()
         })
     }
-    
+
     pub fn get_node_at_hex_cursor(&self) -> Option<&CborNode> {
-        self.tree.as_ref().and_then(|tree| {
-            tree.get_path_to_offset(self.hex_selected).last().copied()
-        })
+        self.tree
+            .as_ref()
+            .and_then(|tree| tree.get_path_to_offset(self.hex_selected).last().copied())
     }
 
     pub fn open_search(&mut self) {
@@ -470,20 +469,26 @@ impl App {
     }
 
     pub fn delete_char(&mut self) {
-        if (self.popups == PopupMode::Search || self.popups == PopupMode::GotoOffset) && self.search_cursor_position > 0 {
+        if (self.popups == PopupMode::Search || self.popups == PopupMode::GotoOffset)
+            && self.search_cursor_position > 0
+        {
             self.search_input.remove(self.search_cursor_position - 1);
             self.search_cursor_position -= 1;
         }
     }
 
     pub fn move_cursor_left(&mut self) {
-        if (self.popups == PopupMode::Search || self.popups == PopupMode::GotoOffset) && self.search_cursor_position > 0 {
+        if (self.popups == PopupMode::Search || self.popups == PopupMode::GotoOffset)
+            && self.search_cursor_position > 0
+        {
             self.search_cursor_position -= 1;
         }
     }
 
     pub fn move_cursor_right(&mut self) {
-        if (self.popups == PopupMode::Search || self.popups == PopupMode::GotoOffset) && self.search_cursor_position < self.search_input.len() {
+        if (self.popups == PopupMode::Search || self.popups == PopupMode::GotoOffset)
+            && self.search_cursor_position < self.search_input.len()
+        {
             self.search_cursor_position += 1;
         }
     }
@@ -498,8 +503,8 @@ impl App {
 
     fn submit_search(&mut self) {
         if self.search_input.is_empty() {
-             self.close_popup();
-             return;
+            self.close_popup();
+            return;
         }
 
         let query = self.search_input.clone();
@@ -511,11 +516,11 @@ impl App {
     }
 
     fn submit_goto(&mut self) {
-         if self.search_input.is_empty() {
-             self.close_popup();
-             return;
+        if self.search_input.is_empty() {
+            self.close_popup();
+            return;
         }
-        
+
         // Parse input
         let input = self.search_input.trim();
         let offset = if input.starts_with("0x") || input.starts_with("0X") {
@@ -535,13 +540,13 @@ impl App {
                 } else {
                     self.search_error = Some("Offset out of bounds".to_string());
                 }
-            },
+            }
             Err(_) => {
                 self.search_error = Some("Invalid number".to_string());
             }
         }
     }
-    
+
     pub fn find_next(&mut self) {
         if let Some(query) = self.last_search_query.clone() {
             self.execute_search(&query, true);
@@ -550,7 +555,7 @@ impl App {
 
     pub fn find_previous(&mut self) {
         if let Some(query) = self.last_search_query.clone() {
-             self.execute_search(&query, false);
+            self.execute_search(&query, false);
         }
     }
 
@@ -564,26 +569,29 @@ impl App {
         let found_node_offset = if let Some(tree) = &self.tree {
             let all_nodes = tree.flatten_all();
             let query_lower = query.to_lowercase();
-            
-            let current_idx = all_nodes.iter().position(|n| n.range.start == current_range_start).unwrap_or(0);
-            
+
+            let current_idx = all_nodes
+                .iter()
+                .position(|n| n.range.start == current_range_start)
+                .unwrap_or(0);
+
             let mut result = None;
-            
+
             if forward {
                 // Search forward
                 let start_idx = current_idx + 1;
-                
+
                 // First pass: from next to end
                 for node in all_nodes.iter().skip(start_idx) {
-                     if self.node_matches_query(node, &query_lower) {
+                    if self.node_matches_query(node, &query_lower) {
                         result = Some(node.range.start);
                         break;
                     }
                 }
-                
+
                 // Wrap around: from start to current
                 if result.is_none() {
-                     for node in all_nodes.iter().take(start_idx) {
+                    for node in all_nodes.iter().take(start_idx) {
                         if self.node_matches_query(node, &query_lower) {
                             result = Some(node.range.start);
                             break;
@@ -597,9 +605,9 @@ impl App {
                     indices.extend((0..current_idx).rev());
                 }
                 indices.extend((current_idx..all_nodes.len()).rev()); // Wrap around
-                
+
                 for i in indices {
-                     if self.node_matches_query(all_nodes[i], &query_lower) {
+                    if self.node_matches_query(all_nodes[i], &query_lower) {
                         result = Some(all_nodes[i].range.start);
                         break;
                     }
@@ -611,20 +619,20 @@ impl App {
         };
 
         if let Some(offset) = found_node_offset {
-             if let Some(tree) = &mut self.tree {
+            if let Some(tree) = &mut self.tree {
                 // 1. Expand path to this node
                 tree.expand_path_to_offset(offset);
-                
+
                 // 2. Re-flatten visible nodes to find the new tree_selected index
                 let flat = tree.flatten();
                 if let Some(new_idx) = flat.iter().position(|n| n.range.start == offset) {
                     self.tree_selected = new_idx;
                 }
-             }
-             // Update UI state
-             self.focus = Focus::Tree;
-             self.adjust_tree_scroll();
-             self.search_error = None;
+            }
+            // Update UI state
+            self.focus = Focus::Tree;
+            self.adjust_tree_scroll();
+            self.search_error = None;
         } else {
             self.search_error = Some(format!("'{}' not found", query));
         }
@@ -645,5 +653,3 @@ impl App {
         false
     }
 }
-
-

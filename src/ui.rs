@@ -33,8 +33,10 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
 
     // Left side: Tree view
     let left_area = main_chunks[0];
-    app.visible_tree_height = (left_area.height as usize).saturating_sub(config::BORDER_HEIGHT_ADJUSTMENT);
-    app.visible_hex_height = (main_chunks[1].height as usize).saturating_sub(config::BORDER_HEIGHT_ADJUSTMENT);
+    app.visible_tree_height =
+        (left_area.height as usize).saturating_sub(config::BORDER_HEIGHT_ADJUSTMENT);
+    app.visible_hex_height =
+        (main_chunks[1].height as usize).saturating_sub(config::BORDER_HEIGHT_ADJUSTMENT);
 
     draw_tree_view(frame, app, left_area);
     draw_hex_view(frame, app, main_chunks[1]);
@@ -787,7 +789,7 @@ fn draw_input_dialog(frame: &mut Frame, app: &App, area: Rect) {
     let x = (area.width.saturating_sub(width)) / 2;
     let y = (area.height.saturating_sub(height)) / 2;
     let rect = Rect::new(x, y, width, height);
-    
+
     frame.render_widget(Clear, rect);
 
     let (title, prompt) = match app.popups {
@@ -809,29 +811,34 @@ fn draw_input_dialog(frame: &mut Frame, app: &App, area: Rect) {
         .bg(app.theme.popup_bg);
 
     let mut text = vec![
-        Span::styled(format!("{} ", prompt), Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
+        Span::styled(
+            format!("{} ", prompt),
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD),
+        ),
         Span::raw(&app.search_input),
     ];
-    
+
     // Show cursor
-    // Since we are not in main loop here, we just render the text. 
+    // Since we are not in main loop here, we just render the text.
     // We can simulate cursor by adding a block cursor at the position?
     // Ratatui doesn't have a built-in text field widget with cursor management easily exposed in a single call,
     // but `Paragraph` is fine. We can just modify the text or use `frame.set_cursor`.
-    
+
     // Let's use frame.set_cursor for the real cursor effect
     let cursor_x = rect.x + 1 + prompt.len() as u16 + app.search_cursor_position as u16;
     let cursor_y = rect.y + 1;
     frame.set_cursor(cursor_x, cursor_y);
 
     if let Some(err) = &app.search_error {
-         let err_len = err.len() as u16;
-         let err_x = (rect.x + rect.width).saturating_sub(err_len + 2);
-         // Can't easily overlay text in same line with Paragraph logic without complex spans, 
-         // so maybe just change title or border color? I did border color. 
-         // Let's also add the error text to the right side of the block title if possible, 
-         // or just append it to the text if there is space? 
-         // Actually, let's just make the border red.
+        let err_len = err.len() as u16;
+        let err_x = (rect.x + rect.width).saturating_sub(err_len + 2);
+        // Can't easily overlay text in same line with Paragraph logic without complex spans,
+        // so maybe just change title or border color? I did border color.
+        // Let's also add the error text to the right side of the block title if possible,
+        // or just append it to the text if there is space?
+        // Actually, let's just make the border red.
     }
 
     let p = Paragraph::new(Line::from(text)).block(block);

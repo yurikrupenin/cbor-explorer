@@ -36,21 +36,21 @@ impl Theme {
         Self {
             name: "Tokyo Night".to_string(),
             bg: Color::Rgb(26, 27, 38),
-            fg: Color::Rgb(169, 177, 214), // Text
-            selection_bg: Color::Rgb(51, 70, 124), // Selection Background
-            selection_fg: Color::Rgb(192, 202, 245), // Selection Foreground
+            fg: Color::Rgb(169, 177, 214),             // Text
+            selection_bg: Color::Rgb(51, 70, 124),     // Selection Background
+            selection_fg: Color::Rgb(192, 202, 245),   // Selection Foreground
             border_focused: Color::Rgb(122, 162, 247), // Blue
             border_unfocused: Color::Rgb(86, 95, 137), // Comment/Darker
             header_fg: Color::Rgb(122, 162, 247),
             depth_colors: vec![
-                Color::Rgb(255, 215, 0),   // Gold - selected item (depth 0)
-                Color::Rgb(255, 165, 0),   // Orange - parent
-                Color::Rgb(255, 99, 71),   // Tomato - grandparent
-                Color::Rgb(199, 21, 133),  // MediumVioletRed
-                Color::Rgb(138, 43, 226),  // BlueViolet
-                Color::Rgb(65, 105, 225),  // RoyalBlue
-                Color::Rgb(30, 144, 255),  // DodgerBlue
-                Color::Rgb(0, 191, 255),   // DeepSkyBlue - root
+                Color::Rgb(255, 215, 0),  // Gold - selected item (depth 0)
+                Color::Rgb(255, 165, 0),  // Orange - parent
+                Color::Rgb(255, 99, 71),  // Tomato - grandparent
+                Color::Rgb(199, 21, 133), // MediumVioletRed
+                Color::Rgb(138, 43, 226), // BlueViolet
+                Color::Rgb(65, 105, 225), // RoyalBlue
+                Color::Rgb(30, 144, 255), // DodgerBlue
+                Color::Rgb(0, 191, 255),  // DeepSkyBlue - root
             ],
             byte_colors: ByteColors {
                 null: Color::DarkGray,
@@ -73,7 +73,7 @@ impl Theme {
             selection_fg: Color::Rgb(255, 255, 255),
             border_focused: Color::Rgb(189, 147, 249), // Purple
             border_unfocused: Color::Rgb(98, 114, 164), // Comment
-            header_fg: Color::Rgb(80, 250, 123), // Green
+            header_fg: Color::Rgb(80, 250, 123),       // Green
             depth_colors: vec![
                 Color::Rgb(255, 121, 198), // Pink
                 Color::Rgb(189, 147, 249), // Purple
@@ -84,7 +84,7 @@ impl Theme {
                 Color::Rgb(255, 85, 85),   // Red
                 Color::Rgb(98, 114, 164),  // Comment
             ],
-             byte_colors: ByteColors {
+            byte_colors: ByteColors {
                 null: Color::DarkGray,
                 ascii_printable: Color::Rgb(139, 233, 253),
                 ascii_whitespace: Color::Rgb(80, 250, 123),
@@ -99,13 +99,13 @@ impl Theme {
     pub fn solarized() -> Self {
         Self {
             name: "Solarized".to_string(),
-            bg: Color::Rgb(0, 43, 54), // Base03
-            fg: Color::Rgb(131, 148, 150), // Base0
-            selection_bg: Color::Rgb(7, 54, 66), // Base02
-            selection_fg: Color::Rgb(147, 161, 161), // Base1
-            border_focused: Color::Rgb(38, 139, 210), // Blue
+            bg: Color::Rgb(0, 43, 54),                  // Base03
+            fg: Color::Rgb(131, 148, 150),              // Base0
+            selection_bg: Color::Rgb(7, 54, 66),        // Base02
+            selection_fg: Color::Rgb(147, 161, 161),    // Base1
+            border_focused: Color::Rgb(38, 139, 210),   // Blue
             border_unfocused: Color::Rgb(88, 110, 117), // Base01
-            header_fg: Color::Rgb(133, 153, 0), // Green
+            header_fg: Color::Rgb(133, 153, 0),         // Green
             depth_colors: vec![
                 Color::Rgb(181, 137, 0),   // Yellow
                 Color::Rgb(203, 75, 22),   // Orange
@@ -137,7 +137,7 @@ impl Theme {
             selection_fg: Color::Rgb(248, 248, 242),
             border_focused: Color::Rgb(166, 226, 46), // Green
             border_unfocused: Color::Rgb(117, 113, 94), // Grey
-            header_fg: Color::Rgb(102, 217, 239), // Blue
+            header_fg: Color::Rgb(102, 217, 239),     // Blue
             depth_colors: vec![
                 Color::Rgb(253, 151, 31),  // Orange
                 Color::Rgb(166, 226, 46),  // Green
@@ -155,7 +155,7 @@ impl Theme {
                 ascii_other: Color::Rgb(174, 129, 255),
                 non_ascii: Color::Rgb(253, 151, 31),
             },
-             popup_border: Color::Rgb(166, 226, 46),
+            popup_border: Color::Rgb(166, 226, 46),
             popup_bg: Color::Rgb(39, 40, 34),
         }
     }
@@ -299,16 +299,16 @@ impl Theme {
             border_unfocused: Color::Rgb(175, 184, 193),
             header_fg: Color::Rgb(26, 127, 55), // Green
             depth_colors: vec![
-                Color::Rgb(207, 34, 46),   // Red
-                Color::Rgb(188, 76, 0),    // Orange
-                Color::Rgb(191, 135, 0),   // Yellow
-                Color::Rgb(26, 127, 55),   // Green
-                Color::Rgb(9, 105, 218),   // Blue
-                Color::Rgb(130, 80, 223),  // Purple
-                Color::Rgb(207, 34, 46),   // Red
-                Color::Rgb(188, 76, 0),    // Orange
+                Color::Rgb(207, 34, 46),  // Red
+                Color::Rgb(188, 76, 0),   // Orange
+                Color::Rgb(191, 135, 0),  // Yellow
+                Color::Rgb(26, 127, 55),  // Green
+                Color::Rgb(9, 105, 218),  // Blue
+                Color::Rgb(130, 80, 223), // Purple
+                Color::Rgb(207, 34, 46),  // Red
+                Color::Rgb(188, 76, 0),   // Orange
             ],
-             byte_colors: ByteColors {
+            byte_colors: ByteColors {
                 null: Color::Rgb(175, 184, 193),
                 ascii_printable: Color::Rgb(26, 127, 55),
                 ascii_whitespace: Color::Rgb(191, 135, 0),
@@ -340,7 +340,7 @@ impl Theme {
                 Color::Rgb(255, 123, 114), // Red
                 Color::Rgb(210, 153, 34),  // Orange
             ],
-             byte_colors: ByteColors {
+            byte_colors: ByteColors {
                 null: Color::Rgb(48, 54, 61),
                 ascii_printable: Color::Rgb(63, 185, 80),
                 ascii_whitespace: Color::Rgb(210, 153, 34),
@@ -355,9 +355,9 @@ impl Theme {
     pub fn get_depth_color(&self, depth: usize) -> Color {
         let index = 7 - (depth % 8);
         if index < self.depth_colors.len() {
-             self.depth_colors[index]
+            self.depth_colors[index]
         } else {
-             self.depth_colors[0] // Fallback
+            self.depth_colors[0] // Fallback
         }
     }
 }

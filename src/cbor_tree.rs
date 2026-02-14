@@ -52,8 +52,6 @@ impl fmt::Display for CborType {
 }
 
 impl CborNode {
-
-
     pub fn has_children(&self) -> bool {
         !self.children.is_empty()
     }
@@ -117,7 +115,7 @@ impl CborNode {
             child.collapse_all();
         }
     }
-    
+
     /// Helper to find the path of nodes containing the given offset.
     /// Returns a vector from Root to the deepest node containing the offset.
     pub fn get_path_to_offset(&self, offset: usize) -> Vec<&CborNode> {
@@ -140,7 +138,7 @@ impl CborNode {
             // If this node contains the offset, it's part of the path.
             // We should expand it so its children become visible candidates.
             self.expanded = true;
-            
+
             // Check children recursively
             for child in &mut self.children {
                 if child.expand_path_to_offset(offset) {
