@@ -5,6 +5,8 @@ use crate::theme::Theme;
 use color_eyre::Result;
 use std::path::Path;
 
+use crate::config_store::{AppConfig, ConfigStore};
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Focus {
     Tree,
@@ -45,6 +47,9 @@ pub struct App {
     pub search_cursor_position: usize,
     pub search_error: Option<String>,
     pub last_search_query: Option<String>,
+    // Config
+    pub config_store: Option<ConfigStore>,
+    pub config: AppConfig,
 }
 
 impl App {
@@ -66,6 +71,36 @@ impl App {
             }
         };
 
+        // Initialize themes
+        let themes = vec![
+            Theme::tokyo_night(),
+            Theme::dracula(),
+            Theme::solarized(),
+            Theme::monokai(),
+            Theme::nord(),
+            Theme::gruvbox(),
+            Theme::one_dark(),
+            Theme::catppuccin(),
+            Theme::github_light(),
+            Theme::github_dark(),
+        ];
+
+        // Load config
+        let config_store = ConfigStore::new();
+        let config = if let Some(store) = &config_store {
+            store.load()
+        } else {
+            AppConfig::default()
+        };
+
+        // Apply config
+        let theme = themes.iter()
+            .find(|t| t.name == config.theme)
+            .cloned()
+            .unwrap_or_else(Theme::tokyo_night);
+        
+        let show_hex_integers = config.show_hex_integers;
+
         Ok(App {
             raw_bytes,
             tree,
@@ -80,28 +115,19 @@ impl App {
             file_name,
             show_help: false,
             cursor_row: 0,
-            theme: Theme::default(),
+            theme,
             original_theme: None,
             theme_index: 0,
-            show_hex_integers: false, // Default to decimal
+            show_hex_integers, 
             popups: PopupMode::None,
             show_popup: true,
-            themes: vec![
-                Theme::tokyo_night(),
-                Theme::dracula(),
-                Theme::solarized(),
-                Theme::monokai(),
-                Theme::nord(),
-                Theme::gruvbox(),
-                Theme::one_dark(),
-                Theme::catppuccin(),
-                Theme::github_light(),
-                Theme::github_dark(),
-            ],
+            themes,
             search_input: String::new(),
             search_cursor_position: 0,
             search_error: None,
             last_search_query: None,
+            config_store,
+            config,
         })
     }
 
@@ -129,6 +155,8 @@ impl App {
 
     pub fn toggle_hex_integers(&mut self) {
         self.show_hex_integers = !self.show_hex_integers;
+        self.config.show_hex_integers = self.show_hex_integers;
+        self.save_config();
     }
 
     pub fn toggle_popup(&mut self) {
@@ -160,7 +188,15 @@ impl App {
     }
     
     pub fn confirm_theme_selection(&mut self) {
+        self.config.theme = self.theme.name.clone();
+        self.save_config();
         self.close_theme_dialog();
+    }
+
+    fn save_config(&self) {
+        if let Some(store) = &self.config_store {
+            store.save(&self.config);
+        }
     }
     
     pub fn cancel_theme_selection(&mut self) {

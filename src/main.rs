@@ -2,6 +2,7 @@ mod app;
 mod cbor_tree;
 mod cbor_parser;
 mod config;
+mod config_store;
 mod theme;
 mod ui;
 
