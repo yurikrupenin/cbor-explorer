@@ -182,7 +182,7 @@ fn draw_tree_node(
         // Ancestor
         let color = app.theme.get_depth_color(node.depth);
         (
-            Style::default().bg(app.theme.selection_bg.clone()), // Slightly different shade?
+            Style::default().bg(app.theme.selection_bg), // Slightly different shade?
             color,
         )
     } else {
@@ -451,12 +451,9 @@ fn draw_status_line(frame: &mut Frame, app: &App, area: Rect) {
             .map(|p| p.name.as_str())
             .collect::<Vec<_>>()
             .join(" → ");
-        let value_str = truncate_string(
-            &node.value_preview,
-            (area.width as usize).saturating_sub(path_str.len() + 10),
-        ); // simple truncate
 
-        let content = format!(" {} | {} ", path_str, value_str);
+
+
 
         let paragraph = Paragraph::new(Line::from(vec![
             Span::styled(" Path: ", Style::default().fg(Color::Gray).bg(app.theme.bg)),
@@ -810,7 +807,7 @@ fn draw_input_dialog(frame: &mut Frame, app: &App, area: Rect) {
         .border_style(Style::default().fg(border_color))
         .bg(app.theme.popup_bg);
 
-    let mut text = vec![
+    let text = vec![
         Span::styled(
             format!("{} ", prompt),
             Style::default()
@@ -829,17 +826,9 @@ fn draw_input_dialog(frame: &mut Frame, app: &App, area: Rect) {
     // Let's use frame.set_cursor for the real cursor effect
     let cursor_x = rect.x + 1 + prompt.len() as u16 + app.search_cursor_position as u16;
     let cursor_y = rect.y + 1;
-    frame.set_cursor(cursor_x, cursor_y);
+    frame.set_cursor_position((cursor_x, cursor_y));
 
-    if let Some(err) = &app.search_error {
-        let err_len = err.len() as u16;
-        let err_x = (rect.x + rect.width).saturating_sub(err_len + 2);
-        // Can't easily overlay text in same line with Paragraph logic without complex spans,
-        // so maybe just change title or border color? I did border color.
-        // Let's also add the error text to the right side of the block title if possible,
-        // or just append it to the text if there is space?
-        // Actually, let's just make the border red.
-    }
+
 
     let p = Paragraph::new(Line::from(text)).block(block);
     frame.render_widget(p, rect);
