@@ -452,9 +452,6 @@ fn draw_status_line(frame: &mut Frame, app: &App, area: Rect) {
             .collect::<Vec<_>>()
             .join(" → ");
 
-
-
-
         let paragraph = Paragraph::new(Line::from(vec![
             Span::styled(" Path: ", Style::default().fg(Color::Gray).bg(app.theme.bg)),
             Span::styled(
@@ -827,8 +824,6 @@ fn draw_input_dialog(frame: &mut Frame, app: &App, area: Rect) {
     let cursor_x = rect.x + 1 + prompt.len() as u16 + app.search_cursor_position as u16;
     let cursor_y = rect.y + 1;
     frame.set_cursor_position((cursor_x, cursor_y));
-
-
 
     let p = Paragraph::new(Line::from(text)).block(block);
     frame.render_widget(p, rect);
