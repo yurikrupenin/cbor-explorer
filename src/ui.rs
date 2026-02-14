@@ -1,6 +1,7 @@
 use crate::app::{App, Focus, PopupMode};
 use crate::cbor_tree::{CborNode, CborType};
 use crate::config::{self, BYTES_PER_ROW};
+
 use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style, Stylize},
