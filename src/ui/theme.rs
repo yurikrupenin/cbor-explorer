@@ -15,14 +15,6 @@ pub fn handle_input(app: &mut App, key: KeyEvent) -> Result<()> {
         KeyCode::Down | KeyCode::Char('j') => app.move_theme_selection_down(),
         KeyCode::Enter => app.confirm_theme_selection(),
         KeyCode::Esc => app.cancel_theme_selection(),
-        // Still allow numeric selection for quick access
-        KeyCode::Char(c) => {
-            if let Some(digit) = c.to_digit(10) {
-                if digit > 0 {
-                    app.apply_theme((digit - 1) as usize);
-                }
-            }
-        }
         _ => {}
     }
     Ok(())
@@ -58,10 +50,10 @@ pub fn draw(frame: &mut Frame, app: &App, area: Rect) {
             Style::default().fg(app.theme.fg)
         };
 
-        lines.push(Line::from(vec![Span::styled(
-            format!("{}{}. {}", prefix, i + 1, theme.name),
+        lines.push(Line::from(Span::styled(
+            format!("{}{}", prefix, theme.name),
             style,
-        )]));
+        )));
     }
 
     let block = Block::default()
