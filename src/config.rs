@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 pub const BYTES_PER_ROW: usize = 16;
-pub const LAYOUT_SPLIT_PERCENT: u16 = 50;
+pub const LAYOUT_SPLIT_PERCENT: u16 = 30;
 pub const BORDER_HEIGHT_ADJUSTMENT: usize = 2; // Top + Bottom borders
 pub const POPUP_MAX_WIDTH: u16 = 50;
 pub const POPUP_MAX_HEIGHT: u16 = 20;

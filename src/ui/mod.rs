@@ -34,7 +34,7 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
         .direction(Direction::Horizontal)
         .constraints([
             Constraint::Percentage(config::LAYOUT_SPLIT_PERCENT),
-            Constraint::Percentage(config::LAYOUT_SPLIT_PERCENT),
+            Constraint::Percentage(100 - config::LAYOUT_SPLIT_PERCENT),
         ])
         .split(outer_chunks[0]);
 
