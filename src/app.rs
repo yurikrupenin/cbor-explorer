@@ -19,6 +19,7 @@ pub enum PopupMode {
     ThemeSelect,
     Search,
     GotoOffset,
+    Help,
 }
 
 pub struct App {
@@ -33,7 +34,6 @@ pub struct App {
     pub visible_tree_height: usize,
     pub visible_hex_height: usize,
     pub file_name: String,
-    pub show_help: bool,
     pub cursor_row: usize, // Track cursor row for popup positioning
     pub theme: Theme,
     pub original_theme: Option<Theme>, // Store original theme for cancelling selection
@@ -113,7 +113,6 @@ impl App {
             visible_tree_height: 20,
             visible_hex_height: 20,
             file_name,
-            show_help: false,
             cursor_row: 0,
             theme,
             original_theme: None,
@@ -151,7 +150,11 @@ impl App {
     }
 
     pub fn toggle_help(&mut self) {
-        self.show_help = !self.show_help;
+        if self.popups == PopupMode::Help {
+            self.popups = PopupMode::None;
+        } else {
+            self.popups = PopupMode::Help;
+        }
     }
 
     pub fn toggle_hex_integers(&mut self) {
@@ -164,60 +167,9 @@ impl App {
         self.show_popup = !self.show_popup;
     }
 
-    pub fn open_theme_dialog(&mut self) {
-        self.original_theme = Some(self.theme.clone());
-        self.popups = PopupMode::ThemeSelect;
-
-        // Find current theme index
-        if let Some(idx) = self.themes.iter().position(|t| t.name == self.theme.name) {
-            self.theme_index = idx;
-        } else {
-            self.theme_index = 0;
-        }
-    }
-
-    pub fn close_theme_dialog(&mut self) {
-        self.popups = PopupMode::None;
-        self.original_theme = None;
-    }
-
-    pub fn apply_theme(&mut self, index: usize) {
-        if index < self.themes.len() {
-            self.theme = self.themes[index].clone();
-            self.theme_index = index;
-        }
-    }
-
-    pub fn confirm_theme_selection(&mut self) {
-        self.config.theme = self.theme.name.clone();
-        self.save_config();
-        self.close_theme_dialog();
-    }
-
     pub fn save_config(&self) {
         if let Some(store) = &self.config_store {
             store.save(&self.config);
-        }
-    }
-
-    pub fn cancel_theme_selection(&mut self) {
-        if let Some(original) = self.original_theme.take() {
-            self.theme = original;
-        }
-        self.popups = PopupMode::None;
-    }
-
-    pub fn move_theme_selection_up(&mut self) {
-        if self.theme_index > 0 {
-            self.theme_index -= 1;
-            self.apply_theme(self.theme_index);
-        }
-    }
-
-    pub fn move_theme_selection_down(&mut self) {
-        if self.theme_index < self.themes.len() - 1 {
-            self.theme_index += 1;
-            self.apply_theme(self.theme_index);
         }
     }
 

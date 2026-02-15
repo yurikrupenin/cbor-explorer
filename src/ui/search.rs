@@ -13,10 +13,10 @@ pub fn handle_input(app: &mut App, key: KeyEvent) -> Result<()> {
     match key.code {
         KeyCode::Esc => app.close_popup(),
         KeyCode::Enter => app.submit_input(),
-        KeyCode::Char(c) => app.enter_char(c),
         KeyCode::Backspace => app.delete_char(),
         KeyCode::Left => app.move_cursor_left(),
         KeyCode::Right => app.move_cursor_right(),
+        KeyCode::Char(c) => app.enter_char(c),
         _ => {}
     }
     Ok(())

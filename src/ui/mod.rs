@@ -1,7 +1,7 @@
 pub mod details;
 pub mod help;
 pub mod hex;
-pub mod input;
+pub mod search;
 pub mod shortcuts;
 pub mod status;
 pub mod theme;
@@ -10,7 +10,7 @@ pub mod tree;
 use crate::app::{App, Focus, PopupMode};
 use crate::config;
 use color_eyre::Result;
-use crossterm::event::{KeyCode, KeyEvent};
+use crossterm::event::KeyEvent;
 use ratatui::{
     layout::{Constraint, Direction, Layout},
     Frame,
@@ -51,7 +51,7 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
     shortcuts::draw(frame, app, outer_chunks[2]);
 
     // Draw cursor-following popup (for Tree or Hex focus)
-    if !app.show_help {
+    if app.popups == PopupMode::None {
         if app.focus == Focus::Tree {
             if let Some(node) = app.get_selected_node() {
                 details::draw(frame, app, node, left_area, true);
@@ -64,76 +64,74 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
     }
 
     // Draw overlays
-    if app.show_help {
+    if app.popups == PopupMode::Help {
         help::draw(frame, app, size);
     } else if app.popups == PopupMode::ThemeSelect {
         theme::draw(frame, app, size);
     } else if app.popups == PopupMode::Search || app.popups == PopupMode::GotoOffset {
-        input::draw(frame, app, size);
+        search::draw(frame, app, size);
     }
 }
 
 pub fn handle_input(app: &mut App, key: KeyEvent) -> Result<()> {
     // Priority: Help Overlay -> Popups -> Main View
 
-    if app.show_help {
-        return help::handle_input(app, key);
-    }
-
+    // Check pop-ups first
     match app.popups {
+        // Already in a pop-up mode where a pop-up accepts input?
+        // Let the pop-up handle it.
         PopupMode::ThemeSelect => theme::handle_input(app, key)?,
-        PopupMode::Search | PopupMode::GotoOffset => input::handle_input(app, key)?,
+        PopupMode::Help => help::handle_input(app, key)?,
+        PopupMode::Search | PopupMode::GotoOffset => search::handle_input(app, key)?,
+
+        // No active pop-up, check global shortcuts first
         PopupMode::None => {
-            // Check global shortcuts first
-            match key.code {
-                KeyCode::Char(config::keys::QUIT) => {
+            match config::resolve_key(key) {
+                config::KeyAction::Quit => {
                     app.should_quit = true;
                     return Ok(());
                 }
-                KeyCode::Tab => {
+                config::KeyAction::SwitchFocus => {
                     app.toggle_focus();
                     return Ok(());
                 }
-                KeyCode::Char(config::keys::HELP) => {
+                config::KeyAction::Help => {
                     app.toggle_help();
                     return Ok(());
                 }
-                KeyCode::Char(config::keys::TOGGLE_HEX_INT) => {
+                config::KeyAction::ToggleHexInt => {
                     app.toggle_hex_integers();
                     return Ok(());
                 }
-                KeyCode::Char(config::keys::THEME_SELECT) => {
-                    app.open_theme_dialog();
+                config::KeyAction::ThemeSelect => {
+                    theme::open(app);
                     return Ok(());
                 }
-                KeyCode::Char('/') => {
+                config::KeyAction::Search => {
                     app.open_search();
                     return Ok(());
                 }
-                KeyCode::Char(':') => {
+                config::KeyAction::Goto => {
                     app.open_goto();
                     return Ok(());
                 }
-                KeyCode::Char('n') => {
+                config::KeyAction::Next => {
                     app.find_next();
                     return Ok(());
                 }
-                KeyCode::Char('N') => {
+                config::KeyAction::Prev => {
                     app.find_previous();
                     return Ok(());
                 }
-                KeyCode::Char(' ') => {
+                config::KeyAction::TogglePopup => {
                     app.toggle_popup();
                     return Ok(());
                 }
                 _ => {}
             }
 
-            // Dispatch to focused widget.
-            // Note that keys pressed that matched above might still fall through if we didn't return Ok(()).
-            // But we do return Ok(()).
-
-            // If we didn't match a global key, check focused widget
+            // Input is not handled by a pop-up or global shortcuts:
+            // Dispatch to the currently focused widget.
             match app.focus {
                 Focus::Tree => tree::handle_input(app, key)?,
                 Focus::Hex => hex::handle_input(app, key)?,

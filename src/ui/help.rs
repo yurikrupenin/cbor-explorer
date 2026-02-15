@@ -1,6 +1,7 @@
 use crate::app::App;
+use crate::config;
 use color_eyre::Result;
-use crossterm::event::{KeyCode, KeyEvent};
+use crossterm::event::KeyEvent;
 use ratatui::{
     layout::Rect,
     style::{Color, Modifier, Style, Stylize},
@@ -9,9 +10,11 @@ use ratatui::{
     Frame,
 };
 
+// ...
+
 pub fn handle_input(app: &mut App, key: KeyEvent) -> Result<()> {
-    match key.code {
-        KeyCode::Char('?') | KeyCode::Esc | KeyCode::Char('q') => {
+    match config::resolve_key(key) {
+        config::KeyAction::Help | config::KeyAction::Quit | config::KeyAction::Esc => {
             app.toggle_help();
         }
         _ => {}

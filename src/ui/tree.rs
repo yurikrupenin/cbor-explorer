@@ -2,7 +2,7 @@ use crate::app::{App, Focus};
 use crate::cbor_tree::{CborNode, CborType};
 use crate::config;
 use color_eyre::Result;
-use crossterm::event::{KeyCode, KeyEvent};
+use crossterm::event::KeyEvent;
 use ratatui::{
     layout::Rect,
     style::{Color, Modifier, Style, Stylize},
@@ -12,15 +12,17 @@ use ratatui::{
 };
 
 // Handle input for the Tree View
+// ...
+
 pub fn handle_input(app: &mut App, key: KeyEvent) -> Result<()> {
-    match key.code {
-        KeyCode::Up | KeyCode::Char('k') => {
+    match config::resolve_key(key) {
+        config::KeyAction::Up => {
             if app.tree_selected > 0 {
                 app.tree_selected -= 1;
                 app.adjust_tree_scroll();
             }
         }
-        KeyCode::Down | KeyCode::Char('j') => {
+        config::KeyAction::Down => {
             if let Some(tree) = &app.tree {
                 let max = tree.flatten().len().saturating_sub(1);
                 if app.tree_selected < max {
@@ -29,22 +31,22 @@ pub fn handle_input(app: &mut App, key: KeyEvent) -> Result<()> {
                 }
             }
         }
-        KeyCode::Home | KeyCode::Char('g') => {
+        config::KeyAction::Top => {
             app.tree_selected = 0;
             app.adjust_tree_scroll();
         }
-        KeyCode::End | KeyCode::Char('G') => {
+        config::KeyAction::Bottom => {
             if let Some(tree) = &app.tree {
                 app.tree_selected = tree.flatten().len().saturating_sub(1);
                 app.adjust_tree_scroll();
             }
         }
-        KeyCode::PageUp => {
+        config::KeyAction::PageUp => {
             let page_size = app.visible_tree_height.saturating_sub(2);
             app.tree_selected = app.tree_selected.saturating_sub(page_size);
             app.adjust_tree_scroll();
         }
-        KeyCode::PageDown => {
+        config::KeyAction::PageDown => {
             if let Some(tree) = &app.tree {
                 let max = tree.flatten().len().saturating_sub(1);
                 let page_size = app.visible_tree_height.saturating_sub(2);
@@ -52,10 +54,15 @@ pub fn handle_input(app: &mut App, key: KeyEvent) -> Result<()> {
                 app.adjust_tree_scroll();
             }
         }
-        KeyCode::Enter => app.toggle_expand(),
-        KeyCode::Char(config::keys::EXPAND_ALL) => app.expand_all(),
-        KeyCode::Char(config::keys::COLLAPSE_ALL) => app.collapse_all(),
-        // Note: Global keys like Tab (Focus switch) are handled in mod.rs or main.rs
+        config::KeyAction::Expand | config::KeyAction::Enter => {
+            app.toggle_expand();
+        }
+        config::KeyAction::ExpandAll => {
+            app.expand_all();
+        }
+        config::KeyAction::CollapseAll => {
+            app.collapse_all();
+        }
         _ => {}
     }
     Ok(())

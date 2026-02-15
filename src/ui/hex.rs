@@ -2,7 +2,7 @@ use crate::app::{App, Focus};
 use crate::cbor_tree::CborNode;
 use crate::config::{self, BYTES_PER_ROW};
 use color_eyre::Result;
-use crossterm::event::{KeyCode, KeyEvent};
+use crossterm::event::KeyEvent;
 use ratatui::{
     layout::Rect,
     style::{Color, Modifier, Style, Stylize},
@@ -11,9 +11,11 @@ use ratatui::{
     Frame,
 };
 
+// ...
+
 pub fn handle_input(app: &mut App, key: KeyEvent) -> Result<()> {
-    match key.code {
-        KeyCode::Up | KeyCode::Char('k') => {
+    match config::resolve_key(key) {
+        config::KeyAction::Up => {
             if app.hex_selected >= BYTES_PER_ROW {
                 app.hex_selected -= BYTES_PER_ROW;
             } else {
@@ -22,7 +24,7 @@ pub fn handle_input(app: &mut App, key: KeyEvent) -> Result<()> {
             app.adjust_hex_scroll();
             app.update_tree_selection_from_hex();
         }
-        KeyCode::Down | KeyCode::Char('j') => {
+        config::KeyAction::Down => {
             let max = app.raw_bytes.len().saturating_sub(1);
             if app.hex_selected + BYTES_PER_ROW <= max {
                 app.hex_selected += BYTES_PER_ROW;
@@ -32,37 +34,37 @@ pub fn handle_input(app: &mut App, key: KeyEvent) -> Result<()> {
             app.adjust_hex_scroll();
             app.update_tree_selection_from_hex();
         }
-        KeyCode::Left | KeyCode::Char('h') => {
+        config::KeyAction::Left => {
             if app.hex_selected > 0 {
                 app.hex_selected -= 1;
                 app.adjust_hex_scroll();
                 app.update_tree_selection_from_hex();
             }
         }
-        KeyCode::Right | KeyCode::Char('l') => {
+        config::KeyAction::Right => {
             if app.hex_selected < app.raw_bytes.len().saturating_sub(1) {
                 app.hex_selected += 1;
                 app.adjust_hex_scroll();
                 app.update_tree_selection_from_hex();
             }
         }
-        KeyCode::Home | KeyCode::Char('g') => {
+        config::KeyAction::Top => {
             app.hex_selected = 0;
             app.hex_offset = 0;
             app.update_tree_selection_from_hex();
         }
-        KeyCode::End | KeyCode::Char('G') => {
+        config::KeyAction::Bottom => {
             app.hex_selected = app.raw_bytes.len().saturating_sub(1);
             app.adjust_hex_scroll();
             app.update_tree_selection_from_hex();
         }
-        KeyCode::PageUp => {
+        config::KeyAction::PageUp => {
             let page_size = app.visible_hex_height.saturating_sub(2) * BYTES_PER_ROW;
             app.hex_selected = app.hex_selected.saturating_sub(page_size);
             app.adjust_hex_scroll();
             app.update_tree_selection_from_hex();
         }
-        KeyCode::PageDown => {
+        config::KeyAction::PageDown => {
             let max = app.raw_bytes.len().saturating_sub(1);
             let page_size = app.visible_hex_height.saturating_sub(2) * BYTES_PER_ROW;
             app.hex_selected = (app.hex_selected + page_size).min(max);

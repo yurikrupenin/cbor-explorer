@@ -1,6 +1,5 @@
-use crate::app::App;
 use color_eyre::Result;
-use crossterm::event::{KeyCode, KeyEvent};
+use crossterm::event::KeyEvent;
 use ratatui::{
     layout::Rect,
     style::{Color, Modifier, Style, Stylize},
@@ -9,15 +8,72 @@ use ratatui::{
     Frame,
 };
 
+use crate::config;
+
+// ...
+
+use crate::app::{App, PopupMode};
+
+pub fn open(app: &mut App) {
+    app.original_theme = Some(app.theme.clone());
+    app.popups = PopupMode::ThemeSelect;
+
+    // Find current theme index
+    if let Some(idx) = app.themes.iter().position(|t| t.name == app.theme.name) {
+        app.theme_index = idx;
+    } else {
+        app.theme_index = 0;
+    }
+}
+
 pub fn handle_input(app: &mut App, key: KeyEvent) -> Result<()> {
-    match key.code {
-        KeyCode::Up | KeyCode::Char('k') => app.move_theme_selection_up(),
-        KeyCode::Down | KeyCode::Char('j') => app.move_theme_selection_down(),
-        KeyCode::Enter => app.confirm_theme_selection(),
-        KeyCode::Esc => app.cancel_theme_selection(),
+    match config::resolve_key(key) {
+        config::KeyAction::Up => move_up(app),
+        config::KeyAction::Down => move_down(app),
+        config::KeyAction::Enter => confirm(app),
+        config::KeyAction::Esc => cancel(app),
         _ => {}
     }
     Ok(())
+}
+
+fn move_up(app: &mut App) {
+    if app.theme_index > 0 {
+        app.theme_index -= 1;
+        apply(app, app.theme_index);
+    }
+}
+
+fn move_down(app: &mut App) {
+    if app.theme_index < app.themes.len() - 1 {
+        app.theme_index += 1;
+        apply(app, app.theme_index);
+    }
+}
+
+fn apply(app: &mut App, index: usize) {
+    if index < app.themes.len() {
+        app.theme = app.themes[index].clone();
+        app.theme_index = index;
+    }
+}
+
+fn confirm(app: &mut App) {
+    app.config.theme = app.theme.name.clone();
+    app.save_config();
+    close(app);
+}
+
+fn cancel(app: &mut App) {
+    if let Some(original) = app.original_theme.take() {
+        app.theme = original;
+    }
+    close(app);
+}
+
+fn close(app: &mut App) {
+    app.popups = PopupMode::None;
+    app.original_theme = None;
 }
 
 pub fn draw(frame: &mut Frame, app: &App, area: Rect) {
