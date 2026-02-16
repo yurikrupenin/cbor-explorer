@@ -1,10 +1,10 @@
 [package]
-name = "cbor-explorer"
+name = "cbx"
 version = "0.1.0"
 edition = "2021"
-description = "A TUI application for exploring CBOR files"
+description = "A TUI application for inspecting CBOR data"
 license = "MIT"
-authors = ["MiniMax Agent"]
+authors = ["Yuri Krupenin <yuri.krupenin@gmail.com>"]
 
 [dependencies]
 ratatui = "0.29"
@@ -19,5 +19,5 @@ directories = "6.0.0"
 rand = "0.8"
 
 [[bin]]
-name = "cbor-explorer"
+name = "cbx"
 path = "src/main.rs"
