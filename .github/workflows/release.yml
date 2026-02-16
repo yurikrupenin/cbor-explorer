@@ -46,15 +46,12 @@ jobs:
         if: matrix.cross
         run: cargo install cross --git https://github.com/cross-rs/cross
 
-      # Build the binary
-      # We dynamically select between 'cargo' and 'cross' based on the matrix
       - name: Build
         run: |
           command="cargo"
           if [[ "${{ matrix.cross }}" == "true" ]]; then command="cross"; fi
           $command build --release --locked --target ${{ matrix.target }}
 
-      # Create a tarball/zip of the binary + README/License
       - name: Package Artifacts
         shell: bash
         run: |
@@ -78,59 +75,65 @@ jobs:
             tar -czvf "$name.tar.gz" "$name"
           fi
 
-      - name: Upload Release Assets
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            *.tar.gz
-            *.zip
-
-  package-deb:
-    name: Package Debian (.deb)
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Install dependencies
+      - name: Package Debian (.deb)
+        if: contains(matrix.target, 'linux')
         run: |
-          sudo apt-get update
-          sudo apt-get install -y gcc-aarch64-linux-gnu
+          cargo install cargo-deb
+          
+          # For aarch64, we need binutils for the target so cargo-deb can analyze the binary
+          if [[ "${{ matrix.target }}" == "aarch64-unknown-linux-gnu" ]]; then
+             sudo apt-get update && sudo apt-get install -y binutils-aarch64-linux-gnu
+          fi
+          
+          # --no-build tells cargo-deb to use the existing artifact from the 'Build' step
+          # --target is key so it finds the binary in target/<triple>/release
+          cargo deb --no-build --target ${{ matrix.target }} --output "cbx_${{ matrix.target }}.deb"
 
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: x86_64-unknown-linux-gnu,aarch64-unknown-linux-gnu
-
-      - name: Install cargo-deb
-        run: cargo install cargo-deb
-
-      - name: Build and Package
+      - name: Prepare Snap Metadata
+        if: contains(matrix.target, 'linux')
         env:
-          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
+          SNAP_TARGET_ARCH: ${{ matrix.target == 'aarch64-unknown-linux-gnu' && 'arm64' || 'amd64' }}
+          VERSION: ${{ github.ref_name }}
         run: |
-          # Build x86_64 deb
-          cargo deb --target x86_64-unknown-linux-gnu --output cbx_amd64.deb
+          # Prepare snap build directory
+          mkdir -p snap_build
           
-          # Build aarch64 deb
-          cargo deb --target aarch64-unknown-linux-gnu --output cbx_arm64.deb
+          # Copy binary
+          cp "target/${{ matrix.target }}/release/cbx" snap_build/
           
-      - name: Upload .deb to Release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: "*.deb"
+          # Generate snapcraft.yaml
+          cat <<EOF > snap_build/snapcraft.yaml
+          name: cbx
+          base: core22
+          version: '${VERSION}'
+          summary: A TUI application for inspecting CBOR data
+          confinement: strict
+          grade: stable
+          architectures:
+            - build-on: amd64
+              run-on: ${SNAP_TARGET_ARCH}
+          
+          apps:
+            cbx:
+              command: bin/cbx
+              plugs: [home, removable-media]
+          
+          parts:
+            cbx:
+              # Use the binary we just copied
+              plugin: dump
+              source: .
+              organize:
+                cbx: bin/cbx
+          EOF
 
-  package-snap:
-    name: Package Snap
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Build Snap
+      - name: Package Snap
+        if: contains(matrix.target, 'linux')
         uses: snapcore/action-build@v1
         id: snap-build
-        
+        with:
+          path: snap_build
+
       # - name: Publish Snap
       #   uses: snapcore/action-publish@v1
       #   env:
@@ -138,3 +141,12 @@ jobs:
       #   with:
       #     snap: ${{ steps.snap-build.outputs.snap }}
       #     release: stable
+
+      - name: Upload Release Assets
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            *.tar.gz
+            *.zip
+            *.deb
+            *.snap
