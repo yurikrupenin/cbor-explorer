@@ -64,6 +64,70 @@ impl Theme {
         }
     }
 
+    pub fn tokyo_night_storm() -> Self {
+        Self {
+            name: "Tokyo Night Storm".to_string(),
+            bg: Color::Rgb(36, 40, 59),
+            fg: Color::Rgb(192, 202, 245),
+            selection_bg: Color::Rgb(65, 72, 104),
+            selection_fg: Color::Rgb(192, 202, 245),
+            border_focused: Color::Rgb(122, 162, 247), // Blue
+            border_unfocused: Color::Rgb(86, 95, 137), // Comment
+            header_fg: Color::Rgb(122, 162, 247),
+            depth_colors: vec![
+                Color::Rgb(255, 158, 100), // Orange
+                Color::Rgb(247, 118, 142), // Red
+                Color::Rgb(187, 154, 247), // Magenta
+                Color::Rgb(122, 162, 247), // Blue
+                Color::Rgb(125, 207, 255), // Cyan
+                Color::Rgb(158, 206, 106), // Green
+                Color::Rgb(224, 175, 104), // Yellow
+                Color::Rgb(255, 158, 100), // Orange
+            ],
+            byte_colors: ByteColors {
+                null: Color::Rgb(86, 95, 137),
+                ascii_printable: Color::Rgb(122, 162, 247),
+                ascii_whitespace: Color::Rgb(158, 206, 106),
+                ascii_other: Color::Rgb(224, 175, 104),
+                non_ascii: Color::Rgb(247, 118, 142),
+            },
+            popup_border: Color::Rgb(122, 162, 247),
+            popup_bg: Color::Rgb(36, 40, 59),
+        }
+    }
+
+    pub fn tokyo_night_light() -> Self {
+        Self {
+            name: "Tokyo Night Light".to_string(),
+            bg: Color::Rgb(230, 231, 237),
+            fg: Color::Rgb(52, 59, 88),
+            selection_bg: Color::Rgb(208, 213, 227),
+            selection_fg: Color::Rgb(52, 59, 88),
+            border_focused: Color::Rgb(41, 89, 170), // Blue
+            border_unfocused: Color::Rgb(154, 165, 206), // Comment
+            header_fg: Color::Rgb(41, 89, 170),
+            depth_colors: vec![
+                Color::Rgb(143, 94, 21), // Yellow/Bronze
+                Color::Rgb(140, 67, 81), // Red
+                Color::Rgb(90, 62, 142), // Magenta
+                Color::Rgb(41, 89, 170), // Blue
+                Color::Rgb(0, 108, 134), // Cyan
+                Color::Rgb(56, 95, 13),  // Green
+                Color::Rgb(143, 94, 21), // Yellow
+                Color::Rgb(140, 67, 81), // Red
+            ],
+            byte_colors: ByteColors {
+                null: Color::Rgb(154, 165, 206),
+                ascii_printable: Color::Rgb(41, 89, 170),
+                ascii_whitespace: Color::Rgb(56, 95, 13),
+                ascii_other: Color::Rgb(143, 94, 21),
+                non_ascii: Color::Rgb(140, 67, 81),
+            },
+            popup_border: Color::Rgb(41, 89, 170),
+            popup_bg: Color::Rgb(230, 231, 237),
+        }
+    }
+
     pub fn dracula() -> Self {
         Self {
             name: "Dracula".to_string(),
@@ -288,67 +352,99 @@ impl Theme {
         }
     }
 
-    pub fn github_light() -> Self {
+    pub fn rose_pine() -> Self {
         Self {
-            name: "GitHub Light".to_string(),
-            bg: Color::Rgb(255, 255, 255),
-            fg: Color::Rgb(36, 41, 47),
-            selection_bg: Color::Rgb(235, 240, 244),
-            selection_fg: Color::Rgb(36, 41, 47),
-            border_focused: Color::Rgb(9, 105, 218), // Blue
-            border_unfocused: Color::Rgb(175, 184, 193),
-            header_fg: Color::Rgb(26, 127, 55), // Green
+            name: "Rosé Pine".to_string(),
+            bg: Color::Rgb(25, 23, 36),
+            fg: Color::Rgb(224, 222, 244),
+            selection_bg: Color::Rgb(64, 61, 82), // Highlight Med
+            selection_fg: Color::Rgb(224, 222, 244),
+            border_focused: Color::Rgb(196, 167, 231), // Iris
+            border_unfocused: Color::Rgb(110, 106, 134), // Muted
+            header_fg: Color::Rgb(49, 116, 143),       // Pine
             depth_colors: vec![
-                Color::Rgb(207, 34, 46),  // Red
-                Color::Rgb(188, 76, 0),   // Orange
-                Color::Rgb(191, 135, 0),  // Yellow
-                Color::Rgb(26, 127, 55),  // Green
-                Color::Rgb(9, 105, 218),  // Blue
-                Color::Rgb(130, 80, 223), // Purple
-                Color::Rgb(207, 34, 46),  // Red
-                Color::Rgb(188, 76, 0),   // Orange
+                Color::Rgb(246, 193, 119), // Gold
+                Color::Rgb(235, 188, 186), // Rose
+                Color::Rgb(235, 111, 146), // Love
+                Color::Rgb(196, 167, 231), // Iris
+                Color::Rgb(156, 207, 216), // Foam
+                Color::Rgb(49, 116, 143),  // Pine
+                Color::Rgb(246, 193, 119), // Gold
+                Color::Rgb(235, 188, 186), // Rose
             ],
             byte_colors: ByteColors {
-                null: Color::Rgb(175, 184, 193),
-                ascii_printable: Color::Rgb(26, 127, 55),
-                ascii_whitespace: Color::Rgb(191, 135, 0),
-                ascii_other: Color::Rgb(9, 105, 218),
-                non_ascii: Color::Rgb(207, 34, 46),
+                null: Color::Rgb(110, 106, 134),             // Muted
+                ascii_printable: Color::Rgb(224, 222, 244),  // Text
+                ascii_whitespace: Color::Rgb(144, 140, 170), // Subtle
+                ascii_other: Color::Rgb(246, 193, 119),      // Gold
+                non_ascii: Color::Rgb(235, 111, 146),        // Love
             },
-            popup_border: Color::Rgb(9, 105, 218),
-            popup_bg: Color::Rgb(255, 255, 255),
+            popup_border: Color::Rgb(196, 167, 231), // Iris
+            popup_bg: Color::Rgb(25, 23, 36),
         }
     }
 
-    pub fn github_dark() -> Self {
+    pub fn rose_pine_moon() -> Self {
         Self {
-            name: "GitHub Dark".to_string(),
-            bg: Color::Rgb(13, 17, 23),
-            fg: Color::Rgb(201, 209, 217),
-            selection_bg: Color::Rgb(22, 27, 34),
-            selection_fg: Color::Rgb(240, 246, 252),
-            border_focused: Color::Rgb(88, 166, 255), // Blue
-            border_unfocused: Color::Rgb(48, 54, 61),
-            header_fg: Color::Rgb(63, 185, 80), // Green
+            name: "Rosé Pine Moon".to_string(),
+            bg: Color::Rgb(35, 33, 54),
+            fg: Color::Rgb(224, 222, 244),
+            selection_bg: Color::Rgb(68, 65, 90), // Highlight Med
+            selection_fg: Color::Rgb(224, 222, 244),
+            border_focused: Color::Rgb(196, 167, 231), // Iris
+            border_unfocused: Color::Rgb(110, 106, 134), // Muted
+            header_fg: Color::Rgb(62, 143, 176),       // Pine
             depth_colors: vec![
-                Color::Rgb(255, 123, 114), // Red
-                Color::Rgb(210, 153, 34),  // Orange
-                Color::Rgb(210, 153, 34),  // Yellow
-                Color::Rgb(63, 185, 80),   // Green
-                Color::Rgb(88, 166, 255),  // Blue
-                Color::Rgb(188, 139, 255), // Purple
-                Color::Rgb(255, 123, 114), // Red
-                Color::Rgb(210, 153, 34),  // Orange
+                Color::Rgb(246, 193, 119), // Gold
+                Color::Rgb(234, 154, 151), // Rose
+                Color::Rgb(235, 111, 146), // Love
+                Color::Rgb(196, 167, 231), // Iris
+                Color::Rgb(156, 207, 216), // Foam
+                Color::Rgb(62, 143, 176),  // Pine
+                Color::Rgb(246, 193, 119), // Gold
+                Color::Rgb(234, 154, 151), // Rose
             ],
             byte_colors: ByteColors {
-                null: Color::Rgb(48, 54, 61),
-                ascii_printable: Color::Rgb(63, 185, 80),
-                ascii_whitespace: Color::Rgb(210, 153, 34),
-                ascii_other: Color::Rgb(88, 166, 255),
-                non_ascii: Color::Rgb(255, 123, 114),
+                null: Color::Rgb(110, 106, 134),
+                ascii_printable: Color::Rgb(224, 222, 244),
+                ascii_whitespace: Color::Rgb(144, 140, 170),
+                ascii_other: Color::Rgb(246, 193, 119),
+                non_ascii: Color::Rgb(235, 111, 146),
             },
-            popup_border: Color::Rgb(88, 166, 255),
-            popup_bg: Color::Rgb(13, 17, 23),
+            popup_border: Color::Rgb(196, 167, 231),
+            popup_bg: Color::Rgb(35, 33, 54),
+        }
+    }
+
+    pub fn rose_pine_dawn() -> Self {
+        Self {
+            name: "Rosé Pine Dawn".to_string(),
+            bg: Color::Rgb(250, 244, 237),
+            fg: Color::Rgb(87, 82, 121),
+            selection_bg: Color::Rgb(223, 218, 217), // Highlight Med
+            selection_fg: Color::Rgb(87, 82, 121),
+            border_focused: Color::Rgb(144, 122, 169), // Iris
+            border_unfocused: Color::Rgb(152, 147, 165), // Muted
+            header_fg: Color::Rgb(40, 105, 131),       // Pine
+            depth_colors: vec![
+                Color::Rgb(234, 157, 52),  // Gold
+                Color::Rgb(215, 130, 126), // Rose
+                Color::Rgb(180, 99, 122),  // Love
+                Color::Rgb(144, 122, 169), // Iris
+                Color::Rgb(86, 148, 159),  // Foam
+                Color::Rgb(40, 105, 131),  // Pine
+                Color::Rgb(234, 157, 52),  // Gold
+                Color::Rgb(215, 130, 126), // Rose
+            ],
+            byte_colors: ByteColors {
+                null: Color::Rgb(152, 147, 165),
+                ascii_printable: Color::Rgb(87, 82, 121),
+                ascii_whitespace: Color::Rgb(121, 117, 147),
+                ascii_other: Color::Rgb(234, 157, 52),
+                non_ascii: Color::Rgb(180, 99, 122),
+            },
+            popup_border: Color::Rgb(144, 122, 169),
+            popup_bg: Color::Rgb(250, 244, 237),
         }
     }
 

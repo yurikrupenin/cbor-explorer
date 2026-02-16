@@ -91,6 +91,11 @@ impl App {
         // Initialize themes
         let themes = vec![
             Theme::tokyo_night(),
+            Theme::tokyo_night_storm(),
+            Theme::tokyo_night_light(),
+            Theme::rose_pine(),
+            Theme::rose_pine_moon(),
+            Theme::rose_pine_dawn(),
             Theme::dracula(),
             Theme::solarized(),
             Theme::monokai(),
@@ -98,8 +103,6 @@ impl App {
             Theme::gruvbox(),
             Theme::one_dark(),
             Theme::catppuccin(),
-            Theme::github_light(),
-            Theme::github_dark(),
         ];
 
         // Load config
