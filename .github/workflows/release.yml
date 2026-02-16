@@ -113,7 +113,7 @@ jobs:
           grade: stable
           architectures:
             - build-on: amd64
-              run-on: ${SNAP_TARGET_ARCH}
+              build-for: ${SNAP_TARGET_ARCH}
           
           apps:
             cbx:
