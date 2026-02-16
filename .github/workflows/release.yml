@@ -106,7 +106,7 @@ jobs:
           # Generate snapcraft.yaml
           cat <<EOF > snap_build/snapcraft.yaml
           name: cbx
-          base: core22
+          base: core24
           version: '${VERSION}'
           summary: A TUI application for inspecting CBOR data
           description: |
