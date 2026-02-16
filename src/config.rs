@@ -5,6 +5,9 @@ pub const BORDER_HEIGHT_ADJUSTMENT: usize = 2; // Top + Bottom borders
 pub const POPUP_MAX_WIDTH: u16 = 50;
 pub const POPUP_MAX_HEIGHT: u16 = 20;
 
+pub const MOUSE_SCROLL_LINES_HEX: usize = 1;
+pub const MOUSE_SCROLL_LINES_TREE: usize = 1;
+
 use crossterm::event::KeyCode;
 
 // Navigation

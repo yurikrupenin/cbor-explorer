@@ -87,6 +87,31 @@ pub fn handle_input(app: &mut App, key: KeyEvent) -> Result<()> {
     Ok(())
 }
 
+pub fn handle_scroll_up(app: &mut App) {
+    let step = BYTES_PER_ROW * config::MOUSE_SCROLL_LINES_HEX;
+    if app.hex_selected >= step {
+        app.hex_selected -= step;
+    } else {
+        app.hex_selected = 0;
+    }
+    app.adjust_hex_scroll();
+    app.update_tree_selection_from_hex();
+    app.adjust_tree_scroll();
+}
+
+pub fn handle_scroll_down(app: &mut App) {
+    let max = app.raw_bytes.len().saturating_sub(1);
+    let step = BYTES_PER_ROW * config::MOUSE_SCROLL_LINES_HEX;
+    if app.hex_selected + step <= max {
+        app.hex_selected += step;
+    } else {
+        app.hex_selected = max;
+    }
+    app.adjust_hex_scroll();
+    app.update_tree_selection_from_hex();
+    app.adjust_tree_scroll();
+}
+
 pub fn draw(frame: &mut Frame, app: &App, area: Rect) {
     let is_focused = app.focus == Focus::Hex;
     let border_style = if is_focused {

@@ -10,7 +10,7 @@ pub mod tree;
 use crate::app::{App, Focus, PopupMode};
 use crate::config;
 use color_eyre::Result;
-use crossterm::event::KeyEvent;
+use crossterm::event::{KeyEvent, MouseButton, MouseEvent, MouseEventKind};
 use ratatui::{
     layout::{Constraint, Direction, Layout},
     Frame,
@@ -44,6 +44,11 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
         (left_area.height as usize).saturating_sub(config::BORDER_HEIGHT_ADJUSTMENT);
     app.visible_hex_height =
         (main_chunks[1].height as usize).saturating_sub(config::BORDER_HEIGHT_ADJUSTMENT);
+
+    // Report back rectangle sizes back to app after drawing;
+    // used to handle mouse input
+    app.tree_area = left_area;
+    app.hex_area = main_chunks[1];
 
     tree::draw(frame, app, left_area);
     hex::draw(frame, app, main_chunks[1]);
@@ -147,4 +152,44 @@ pub fn handle_input(app: &mut App, key: KeyEvent) -> Result<()> {
         }
     }
     Ok(())
+}
+pub fn handle_mouse_input(app: &mut App, mouse: MouseEvent) -> Result<()> {
+    match mouse.kind {
+        MouseEventKind::Down(MouseButton::Left) => {
+            let x = mouse.column;
+            let y = mouse.row;
+
+            if mouse_is_inside(app.tree_area, x, y) {
+                app.focus = Focus::Tree;
+            } else if mouse_is_inside(app.hex_area, x, y) {
+                app.focus = Focus::Hex;
+            }
+        }
+        MouseEventKind::ScrollDown => {
+            let x = mouse.column;
+            let y = mouse.row;
+
+            if mouse_is_inside(app.tree_area, x, y) {
+                tree::handle_scroll_down(app);
+            } else if mouse_is_inside(app.hex_area, x, y) {
+                hex::handle_scroll_down(app);
+            }
+        }
+        MouseEventKind::ScrollUp => {
+            let x = mouse.column;
+            let y = mouse.row;
+
+            if mouse_is_inside(app.tree_area, x, y) {
+                tree::handle_scroll_up(app);
+            } else if mouse_is_inside(app.hex_area, x, y) {
+                hex::handle_scroll_up(app);
+            }
+        }
+        _ => {}
+    }
+    Ok(())
+}
+
+fn mouse_is_inside(area: ratatui::layout::Rect, x: u16, y: u16) -> bool {
+    x >= area.x && x < area.x + area.width && y >= area.y && y < area.y + area.height
 }

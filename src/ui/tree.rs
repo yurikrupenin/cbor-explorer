@@ -74,6 +74,31 @@ pub fn handle_input(app: &mut App, key: KeyEvent) -> Result<()> {
     Ok(())
 }
 
+pub fn handle_scroll_up(app: &mut App) {
+    if app.tree_selected > 0 {
+        app.tree_selected = app
+            .tree_selected
+            .saturating_sub(config::MOUSE_SCROLL_LINES_TREE);
+        app.adjust_tree_scroll();
+        app.update_hex_selection_from_tree();
+    }
+}
+
+pub fn handle_scroll_down(app: &mut App) {
+    if let Some(tree) = &app.tree {
+        let max = tree.flatten().len();
+        if max > 0 {
+            let max_idx = max - 1;
+            if app.tree_selected < max_idx {
+                app.tree_selected =
+                    (app.tree_selected + config::MOUSE_SCROLL_LINES_TREE).min(max_idx);
+                app.adjust_tree_scroll();
+                app.update_hex_selection_from_tree();
+            }
+        }
+    }
+}
+
 pub fn draw(frame: &mut Frame, app: &mut App, area: Rect) {
     let is_focused = app.focus == Focus::Tree;
     let border_style = if is_focused {

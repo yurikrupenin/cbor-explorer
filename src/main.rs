@@ -65,17 +65,23 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> Result<()> 
     loop {
         terminal.draw(|f| ui::draw(f, app))?;
 
-        if let Event::Key(key) = event::read()? {
-            if key.modifiers.contains(KeyModifiers::CONTROL) && key.code == KeyCode::Char('c') {
-                return Ok(());
-            }
+        match event::read()? {
+            Event::Key(key) => {
+                if key.modifiers.contains(KeyModifiers::CONTROL) && key.code == KeyCode::Char('c') {
+                    return Ok(());
+                }
 
-            // Delegate input handling to UI widgets
-            ui::handle_input(app, key)?;
-
-            if app.should_quit {
-                return Ok(());
+                // Delegate input handling to UI widgets
+                ui::handle_input(app, key)?;
             }
+            Event::Mouse(mouse) => {
+                ui::handle_mouse_input(app, mouse)?;
+            }
+            _ => {}
+        }
+
+        if app.should_quit {
+            return Ok(());
         }
     }
 }

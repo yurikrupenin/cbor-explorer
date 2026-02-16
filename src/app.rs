@@ -2,6 +2,7 @@ use crate::cbor_tree::{CborNode, CborType};
 use crate::config::BYTES_PER_ROW;
 use crate::theme::Theme;
 use color_eyre::Result;
+use ratatui::layout::Rect;
 use std::path::Path;
 
 use crate::config_store::{AppConfig, ConfigStore};
@@ -60,6 +61,8 @@ pub struct App {
     pub config_store: Option<ConfigStore>,
     pub config: AppConfig,
     pub should_quit: bool,
+    pub tree_area: Rect,
+    pub hex_area: Rect,
 }
 
 impl App {
@@ -146,6 +149,8 @@ impl App {
             config_store,
             config,
             should_quit: false,
+            tree_area: Rect::default(),
+            hex_area: Rect::default(),
         };
 
         app.rebuild_tree();
