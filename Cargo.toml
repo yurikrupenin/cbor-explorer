@@ -21,3 +21,12 @@ rand = "0.8"
 [[bin]]
 name = "cbx"
 path = "src/main.rs"
+
+[package.metadata.deb]
+maintainer = "Yuri Krupenin <yuri.krupenin@gmail.com>"
+copyright = "2026, Yuri Krupenin"
+depends = "$auto"
+section = "utility"
+assets = [
+  ["target/release/cbx", "usr/bin/", "755"]
+]
