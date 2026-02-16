@@ -16,6 +16,7 @@ unicode-width = "0.2"
 serde = { version = "1.0.228", features = ["derive"] }
 toml = "1.0.1"
 directories = "6.0.0"
+rand = "0.8"
 
 [[bin]]
 name = "cbor-explorer"
