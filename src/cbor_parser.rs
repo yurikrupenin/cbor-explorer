@@ -173,9 +173,7 @@ impl<'a> CborParser<'a> {
         if self.position >= self.input.len() {
             return None;
         }
-
-        // Ensure we reset position if we fail, or manage it?
-        // We are parsing the root item here.
+        // Start with root, proceed recrusively with child nodes
         self.parse_item()
     }
 
@@ -274,10 +272,16 @@ impl<'a> CborParser<'a> {
         }
 
         let end = self.position;
+        if end > self.input.len() {
+            return None;
+        }
         let range = start..end;
 
         let slice = &self.input[range.clone()];
-        let value = ciborium::from_reader(std::io::Cursor::new(slice)).unwrap_or(Value::Null);
+        let value = match ciborium::from_reader(std::io::Cursor::new(slice)) {
+            Ok(v) => v,
+            Err(_) => return None,
+        };
 
         Some(ParsedCbor {
             value,
@@ -346,5 +350,74 @@ impl<'a> CborParser<'a> {
         } else {
             None
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::scanner::CborScanner;
+    use crate::scanner::ScanMode;
+    use ciborium::value::Value;
+
+    #[test]
+    fn test_scan_embedded_cbor() {
+        // Create a buffer with: [garbage 10 bytes] [map] [garbage 5 bytes] [array] [garbage]
+        // Use 0xFF to represent true garbage (invalid start byte)
+        let mut data = Vec::new();
+        data.extend_from_slice(&[0xFF; 10]); // Garbage 10 bytes
+
+        // Map: {"a": 1} -> A1 61 61 01
+        let map_bytes = vec![0xA1, 0x61, 0x61, 0x01];
+        data.extend_from_slice(&map_bytes);
+
+        data.extend_from_slice(&[0xFF; 5]); // Garbage
+
+        // Array: [1, 2, 3, 4, 5] -> 85 01 02 03 04 05
+        // Score: 10(base) + 5 * (1(base) + 5(depth)) = 10 + 30 = 40. > 30.
+        let array_bytes = vec![0x85, 0x01, 0x02, 0x03, 0x04, 0x05];
+        data.extend_from_slice(&array_bytes);
+
+        data.extend_from_slice(&[0xFF]); // Garbage
+
+        let scanner = CborScanner::new(&data);
+        let chunks = scanner.scan_for_cbor_sequences(ScanMode::Auto);
+
+        assert_eq!(chunks.len(), 2, "Should find 2 CBOR chunks");
+
+        // First chunk should be the Map (score > Array)
+        // Map Score: 10 + 25 + 1+1+15+5 + 1+5 = 63.
+
+        let chunk1 = &chunks[0];
+        assert!(chunk1.score > 0);
+        assert_eq!(chunk1.items.len(), 1);
+        // Check if map of 1
+        if let Value::Map(m) = &chunk1.items[0].value {
+            assert_eq!(m.len(), 1);
+        }
+
+        let chunk2 = &chunks[1];
+        assert!(chunk2.score > 0);
+        assert_eq!(chunk2.items.len(), 1);
+        // Check if array of 5
+        if let Value::Array(a) = &chunk2.items[0].value {
+            assert_eq!(a.len(), 5);
+        }
+    }
+
+    #[test]
+    fn test_truncated_data() {
+        // String of length 5, but we only provide 1 byte
+        // 0x65 = text string, length 5
+        let data = vec![0x65, 0x41];
+        let scanner = CborScanner::new(&data);
+
+        // Should not panic, should just return empty or what it found
+        let chunks = scanner.scan_for_cbor_sequences(ScanMode::Auto);
+
+        assert_eq!(
+            chunks.len(),
+            0,
+            "Should not find valid CBOR in truncated data"
+        );
     }
 }

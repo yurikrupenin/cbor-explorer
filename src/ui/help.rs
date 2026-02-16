@@ -73,6 +73,14 @@ pub fn draw(frame: &mut Frame, app: &App, area: Rect) {
             Span::raw("Collapse all nodes"),
         ]),
         Line::from(vec![
+            Span::styled("s        ", Style::default().fg(Color::Yellow)),
+            Span::raw("Sort chunks (Score/Offset)"),
+        ]),
+        Line::from(vec![
+            Span::styled("m        ", Style::default().fg(Color::Yellow)),
+            Span::raw("Toggle Single CBOR document/Scan Mode"),
+        ]),
+        Line::from(vec![
             Span::styled("g/Home   ", Style::default().fg(Color::Yellow)),
             Span::raw("Go to start"),
         ]),

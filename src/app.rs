@@ -1,11 +1,11 @@
-use crate::cbor_parser::CborParser;
-use crate::cbor_tree::CborNode;
+use crate::cbor_tree::{CborNode, CborType};
 use crate::config::BYTES_PER_ROW;
 use crate::theme::Theme;
 use color_eyre::Result;
 use std::path::Path;
 
 use crate::config_store::{AppConfig, ConfigStore};
+use crate::scanner::{CborChunk, CborScanner, ScanMode};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Focus {
@@ -22,9 +22,18 @@ pub enum PopupMode {
     Help,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum SortMode {
+    Score,  // Descending score
+    Offset, // Ascending offset
+}
+
 pub struct App {
     pub raw_bytes: Vec<u8>,
     pub tree: Option<CborNode>,
+    pub chunks: Vec<CborChunk>,
+    pub sort_mode: SortMode,
+    pub scan_mode: ScanMode,
     pub parse_error: Option<String>,
     pub focus: Focus,
     pub tree_selected: usize,
@@ -62,11 +71,17 @@ impl App {
             .unwrap_or_else(|| "unknown".to_string());
 
         // Try to parse CBOR using custom parser
-        let (tree, parse_error) = {
-            let mut parser = CborParser::new(&raw_bytes);
-            match parser.parse() {
-                Some(parsed) => (Some(parsed.to_node(None, 0, vec![])), None),
-                None => (None, Some("Failed to parse CBOR or empty file".to_string())),
+        // Initialize scanner and chunks
+        // Default to Single mode as requested
+        let scan_mode = ScanMode::Single;
+        let (chunks, parse_error) = {
+            let scanner = CborScanner::new(&raw_bytes);
+            let chunks = scanner.scan_for_cbor_sequences(scan_mode);
+
+            if chunks.is_empty() {
+                (Vec::new(), Some("No valid CBOR data found".to_string()))
+            } else {
+                (chunks, None)
             }
         };
 
@@ -101,9 +116,12 @@ impl App {
 
         let show_hex_integers = config.show_hex_integers;
 
-        Ok(App {
+        let mut app = App {
             raw_bytes,
-            tree,
+            tree: None, // Will be built by rebuild_tree
+            chunks,
+            sort_mode: SortMode::Score,
+            scan_mode,
             parse_error,
             focus: Focus::Tree,
             tree_selected: 0,
@@ -128,7 +146,153 @@ impl App {
             config_store,
             config,
             should_quit: false,
-        })
+        };
+
+        app.rebuild_tree();
+        Ok(app)
+    }
+
+    pub fn toggle_scan_mode(&mut self) {
+        self.scan_mode = match self.scan_mode {
+            ScanMode::Single => ScanMode::Auto,
+            ScanMode::Auto => ScanMode::Single,
+        };
+        self.rescan_chunks();
+    }
+
+    fn rescan_chunks(&mut self) {
+        let scanner = CborScanner::new(&self.raw_bytes);
+        self.chunks = scanner.scan_for_cbor_sequences(self.scan_mode);
+
+        if self.chunks.is_empty() {
+            self.parse_error = Some("No valid CBOR data found".to_string());
+        } else {
+            self.parse_error = None;
+        }
+
+        self.rebuild_tree();
+        self.tree_selected = 0;
+        self.tree_offset = 0;
+    }
+
+    pub fn toggle_sort(&mut self) {
+        self.sort_mode = match self.sort_mode {
+            SortMode::Score => SortMode::Offset,
+            SortMode::Offset => SortMode::Score,
+        };
+        self.rebuild_tree();
+
+        // Reset selection and scrolling.
+        // TODO: Would be nice to keep focus on the
+        //       active item after reordering the tree
+        self.tree_selected = 0;
+        self.tree_offset = 0;
+    }
+
+    fn rebuild_tree(&mut self) {
+        // No valid data, nothing to do.
+        if self.chunks.is_empty() {
+            self.tree = None;
+            return;
+        }
+
+        // Sort chunks based on mode.
+        match self.sort_mode {
+            SortMode::Score => self.chunks.sort_by(|a, b| b.score.cmp(&a.score)),
+            SortMode::Offset => self.chunks.sort_by(|a, b| a.offset.cmp(&b.offset)),
+        }
+
+        // We only have a single sequence in the file that looks like CBOR,
+        // no rebuild is required.
+        if self.chunks.len() == 1 && self.chunks[0].items.len() == 1 {
+            self.tree = Some(self.chunks[0].items[0].to_node(None, 0, vec![]));
+            return;
+        }
+
+        // Otherwise: multiple CBOR-looking sequences are found.
+        //
+        // Create a faux root node for display purposes;
+        // attach every chunk we found to this item as children.
+        let mut synthetic_root = CborNode {
+            key: Some(format!(
+                "Found CBOR Data (Mode: {:?}, Sorted by {:?})",
+                self.scan_mode, self.sort_mode
+            )),
+            value_type: CborType::Map,
+            value_preview: format!("{} chunks found", self.chunks.len()),
+            full_value: format!("Found {} CBOR data chunks", self.chunks.len()),
+            children: vec![],
+            expanded: true,
+            depth: 0,
+            path: vec![],
+            range: 0..self.raw_bytes.len(),
+        };
+
+        let children: Vec<CborNode> = self
+            .chunks
+            .iter()
+            .enumerate()
+            .map(|(i, chunk)| {
+                // Create a node for the chunk
+                let chunk_range_end = chunk
+                    .items
+                    .last()
+                    .map(|item| item.range.end)
+                    .unwrap_or(chunk.offset);
+
+                let chunk_name = format!("Chunk #{}", i + 1);
+
+                // Faux path for top-level node in every chunk
+                let chunk_path = vec![
+                    crate::cbor_tree::PathSegment {
+                        name: "root".to_string(),
+                        depth: 0,
+                    },
+                    crate::cbor_tree::PathSegment {
+                        name: chunk_name.clone(),
+                        depth: 1,
+                    },
+                ];
+
+                // Create a node for the chunk
+                let mut chunk_node = CborNode {
+                    key: Some(format!("Chunk #{} (Score: {})", i + 1, chunk.score)),
+                    value_type: CborType::Array,
+                    value_preview: format!(
+                        "offset 0x{:X}, {} items",
+                        chunk.offset,
+                        chunk.items.len()
+                    ),
+                    full_value: format!(
+                        "Chunk at offset 0x{:X} with {} items. Score: {}",
+                        chunk.offset,
+                        chunk.items.len(),
+                        chunk.score
+                    ),
+                    children: vec![],
+                    expanded: i == 0, // Expand only the first (best/first) chunk
+                    depth: 1,
+                    path: chunk_path.clone(),
+                    range: chunk.offset..chunk_range_end,
+                };
+
+                // Attach the chunk's subitems to the node
+                let items_nodes: Vec<CborNode> = chunk
+                    .items
+                    .iter()
+                    .enumerate()
+                    .map(|(j, item)| {
+                        item.to_node(Some(format!("Item {}", j)), 2, chunk_path.clone())
+                    })
+                    .collect();
+
+                chunk_node.children = items_nodes;
+                chunk_node
+            })
+            .collect();
+
+        synthetic_root.children = children;
+        self.tree = Some(synthetic_root);
     }
 
     pub fn toggle_focus(&mut self) {

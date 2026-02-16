@@ -99,6 +99,14 @@ pub fn handle_input(app: &mut App, key: KeyEvent) -> Result<()> {
                     app.toggle_help();
                     return Ok(());
                 }
+                config::KeyAction::Sort => {
+                    app.toggle_sort();
+                    return Ok(());
+                }
+                config::KeyAction::Mode => {
+                    app.toggle_scan_mode();
+                    return Ok(());
+                }
                 config::KeyAction::ToggleHexInt => {
                     app.toggle_hex_integers();
                     return Ok(());

@@ -8,16 +8,21 @@ use ratatui::{
 };
 
 pub fn draw(frame: &mut Frame, app: &App, area: Rect) {
-    let shortcuts = vec![
+    let mut shortcuts = vec![
         ("q", "Quit"),
         ("?", "Help"),
         ("Tab", "Switch View"),
         ("x", "Hex/Dec"),
         ("t", "Theme"),
-        ("/", "Search"),
-        (":", "Go to"),
-        ("Space", "Popup"),
     ];
+
+    if app.chunks.len() > 1 {
+        shortcuts.push(("s", "Sort"));
+    }
+
+    shortcuts.push(("m", "Mode"));
+
+    shortcuts.extend_from_slice(&[("/", "Search"), (":", "Go to"), ("Space", "Popup")]);
 
     let mut spans = Vec::new();
     for (key, desc) in shortcuts {

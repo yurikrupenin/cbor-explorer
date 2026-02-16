@@ -3,6 +3,7 @@ mod cbor_parser;
 mod cbor_tree;
 mod config;
 mod config_store;
+mod scanner;
 mod theme;
 mod ui;
 
