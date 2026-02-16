@@ -47,6 +47,7 @@ jobs:
         run: cargo install cross --git https://github.com/cross-rs/cross
 
       - name: Build
+        shell: bash
         run: |
           command="cargo"
           if [[ "${{ matrix.cross }}" == "true" ]]; then command="cross"; fi
@@ -91,6 +92,7 @@ jobs:
 
       - name: Prepare Snap Metadata
         if: contains(matrix.target, 'linux')
+        shell: bash
         env:
           SNAP_TARGET_ARCH: ${{ matrix.target == 'aarch64-unknown-linux-gnu' && 'arm64' || 'amd64' }}
           VERSION: ${{ github.ref_name }}
