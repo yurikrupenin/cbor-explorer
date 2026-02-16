@@ -109,6 +109,10 @@ jobs:
           base: core22
           version: '${VERSION}'
           summary: A TUI application for inspecting CBOR data
+          description: |
+            A TUI application for inspecting CBOR (Concise Binary Object Representation) data.
+            Cbx provides a tree-like view of the data structure, syntax highlighting, and
+            heuristic detection options (scanning files for embedded CBOR data structures).
           confinement: strict
           grade: stable
           architectures:
