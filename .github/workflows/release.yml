@@ -115,7 +115,7 @@ jobs:
             heuristic detection options (scanning files for embedded CBOR data structures).
           confinement: strict
           grade: stable
-          architectures:
+          platforms:
             - build-on: amd64
               build-for: ${SNAP_TARGET_ARCH}
           
