@@ -385,6 +385,13 @@ impl App {
         }
     }
 
+    pub fn update_hex_selection_from_tree(&mut self) {
+        if let Some(node) = self.get_selected_node() {
+            self.hex_selected = node.range.start;
+            self.adjust_hex_scroll();
+        }
+    }
+
     pub fn adjust_hex_scroll(&mut self) {
         let row = self.hex_selected / BYTES_PER_ROW;
         let visible_rows = self.visible_hex_height.saturating_sub(2);

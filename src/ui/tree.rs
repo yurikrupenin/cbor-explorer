@@ -20,6 +20,7 @@ pub fn handle_input(app: &mut App, key: KeyEvent) -> Result<()> {
             if app.tree_selected > 0 {
                 app.tree_selected -= 1;
                 app.adjust_tree_scroll();
+                app.update_hex_selection_from_tree();
             }
         }
         config::KeyAction::Down => {
@@ -28,23 +29,27 @@ pub fn handle_input(app: &mut App, key: KeyEvent) -> Result<()> {
                 if app.tree_selected < max {
                     app.tree_selected += 1;
                     app.adjust_tree_scroll();
+                    app.update_hex_selection_from_tree();
                 }
             }
         }
         config::KeyAction::Top => {
             app.tree_selected = 0;
             app.adjust_tree_scroll();
+            app.update_hex_selection_from_tree();
         }
         config::KeyAction::Bottom => {
             if let Some(tree) = &app.tree {
                 app.tree_selected = tree.flatten().len().saturating_sub(1);
                 app.adjust_tree_scroll();
+                app.update_hex_selection_from_tree();
             }
         }
         config::KeyAction::PageUp => {
             let page_size = app.visible_tree_height.saturating_sub(2);
             app.tree_selected = app.tree_selected.saturating_sub(page_size);
             app.adjust_tree_scroll();
+            app.update_hex_selection_from_tree();
         }
         config::KeyAction::PageDown => {
             if let Some(tree) = &app.tree {
@@ -52,6 +57,7 @@ pub fn handle_input(app: &mut App, key: KeyEvent) -> Result<()> {
                 let page_size = app.visible_tree_height.saturating_sub(2);
                 app.tree_selected = (app.tree_selected + page_size).min(max);
                 app.adjust_tree_scroll();
+                app.update_hex_selection_from_tree();
             }
         }
         config::KeyAction::Expand | config::KeyAction::Enter => {

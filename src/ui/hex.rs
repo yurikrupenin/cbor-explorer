@@ -23,6 +23,7 @@ pub fn handle_input(app: &mut App, key: KeyEvent) -> Result<()> {
             }
             app.adjust_hex_scroll();
             app.update_tree_selection_from_hex();
+            app.adjust_tree_scroll();
         }
         config::KeyAction::Down => {
             let max = app.raw_bytes.len().saturating_sub(1);
@@ -33,12 +34,14 @@ pub fn handle_input(app: &mut App, key: KeyEvent) -> Result<()> {
             }
             app.adjust_hex_scroll();
             app.update_tree_selection_from_hex();
+            app.adjust_tree_scroll();
         }
         config::KeyAction::Left => {
             if app.hex_selected > 0 {
                 app.hex_selected -= 1;
                 app.adjust_hex_scroll();
                 app.update_tree_selection_from_hex();
+                app.adjust_tree_scroll();
             }
         }
         config::KeyAction::Right => {
@@ -46,30 +49,38 @@ pub fn handle_input(app: &mut App, key: KeyEvent) -> Result<()> {
                 app.hex_selected += 1;
                 app.adjust_hex_scroll();
                 app.update_tree_selection_from_hex();
+                app.adjust_tree_scroll();
             }
         }
         config::KeyAction::Top => {
             app.hex_selected = 0;
             app.hex_offset = 0;
             app.update_tree_selection_from_hex();
+            app.adjust_tree_scroll();
         }
         config::KeyAction::Bottom => {
             app.hex_selected = app.raw_bytes.len().saturating_sub(1);
+            app.hex_selected = app.raw_bytes.len().saturating_sub(1);
             app.adjust_hex_scroll();
             app.update_tree_selection_from_hex();
+            app.adjust_tree_scroll();
         }
         config::KeyAction::PageUp => {
             let page_size = app.visible_hex_height.saturating_sub(2) * BYTES_PER_ROW;
             app.hex_selected = app.hex_selected.saturating_sub(page_size);
+            app.hex_selected = app.hex_selected.saturating_sub(page_size);
             app.adjust_hex_scroll();
             app.update_tree_selection_from_hex();
+            app.adjust_tree_scroll();
         }
         config::KeyAction::PageDown => {
             let max = app.raw_bytes.len().saturating_sub(1);
             let page_size = app.visible_hex_height.saturating_sub(2) * BYTES_PER_ROW;
             app.hex_selected = (app.hex_selected + page_size).min(max);
+            app.hex_selected = (app.hex_selected + page_size).min(max);
             app.adjust_hex_scroll();
             app.update_tree_selection_from_hex();
+            app.adjust_tree_scroll();
         }
         _ => {}
     }
