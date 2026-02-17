@@ -33,6 +33,21 @@ fn main() -> Result<()> {
     color_eyre::install()?;
     let args = Args::parse();
 
+    // Check if file exists and is readable
+    if let Err(err) = std::fs::File::open(&args.file) {
+        eprintln!(
+            "Error: Failed to open file '{}': {}",
+            args.file.display(),
+            err
+        );
+        std::process::exit(1);
+    }
+
+    if args.file.is_dir() {
+        eprintln!("Error: '{}' is a directory.", args.file.display());
+        std::process::exit(1);
+    }
+
     // Setup terminal
     enable_raw_mode()?;
     let mut stdout = io::stdout();
