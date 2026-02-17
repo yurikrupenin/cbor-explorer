@@ -155,6 +155,7 @@ impl ParsedCbor {
             depth,
             path,
             range: self.range.clone(),
+            confidence: None,
         }
     }
 }

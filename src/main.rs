@@ -6,6 +6,7 @@ mod config_store;
 mod scanner;
 mod theme;
 mod ui;
+mod util;
 
 use app::App;
 use clap::Parser;

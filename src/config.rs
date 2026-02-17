@@ -1,14 +1,21 @@
-#![allow(dead_code)]
+use crossterm::event::KeyCode;
+
+// Confidence levels for CBOR data
+// (see scanner.rs for details)
+pub const CONFIDENCE_HIGH: usize = 500;
+pub const CONFIDENCE_MEDIUM: usize = 300;
+pub const CONFIDENCE_LOW: usize = 100;
+
+// UI constants
 pub const BYTES_PER_ROW: usize = 16;
 pub const LAYOUT_SPLIT_PERCENT: u16 = 30;
 pub const BORDER_HEIGHT_ADJUSTMENT: usize = 2; // Top + Bottom borders
 pub const POPUP_MAX_WIDTH: u16 = 50;
 pub const POPUP_MAX_HEIGHT: u16 = 20;
 
+// Mouse controls
 pub const MOUSE_SCROLL_LINES_HEX: usize = 1;
 pub const MOUSE_SCROLL_LINES_TREE: usize = 1;
-
-use crossterm::event::KeyCode;
 
 // Navigation
 pub const KEY_UP: &[KeyCode] = &[KeyCode::Up, KeyCode::Char('k')];
@@ -163,27 +170,4 @@ pub fn resolve_key(key: KeyEvent) -> KeyAction {
         return KeyAction::Char(c);
     }
     KeyAction::None
-}
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum ByteType {
-    Null,
-    AsciiPrintable,
-    AsciiWhitespace,
-    AsciiOther,
-    NonAscii,
-}
-
-pub fn get_byte_type(byte: u8) -> ByteType {
-    if byte == 0x00 {
-        ByteType::Null
-    } else if byte.is_ascii_graphic() || byte == b' ' {
-        ByteType::AsciiPrintable
-    } else if byte.is_ascii_whitespace() {
-        ByteType::AsciiWhitespace
-    } else if byte.is_ascii() {
-        ByteType::AsciiOther
-    } else {
-        ByteType::NonAscii
-    }
 }

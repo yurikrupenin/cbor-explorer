@@ -14,6 +14,15 @@ pub struct Theme {
     pub byte_colors: ByteColors,
     pub popup_border: Color,
     pub popup_bg: Color,
+    pub confidence_colors: ConfidenceColors,
+}
+
+#[derive(Debug, Clone)]
+pub struct ConfidenceColors {
+    pub highest: Color,
+    pub high: Color,
+    pub low: Color,
+    pub garbage: Color,
 }
 
 #[derive(Debug, Clone)]
@@ -61,6 +70,12 @@ impl Theme {
             },
             popup_border: Color::Rgb(122, 162, 247),
             popup_bg: Color::Reset,
+            confidence_colors: ConfidenceColors {
+                highest: Color::Rgb(158, 206, 106), // Green (Vibrant)
+                high: Color::Rgb(73, 162, 166),     // Teal/Green (Less vibrant)
+                low: Color::Rgb(86, 95, 137),       // Comment (Dim)
+                garbage: Color::Rgb(247, 118, 142), // Red
+            },
         }
     }
 
@@ -93,6 +108,12 @@ impl Theme {
             },
             popup_border: Color::Rgb(122, 162, 247),
             popup_bg: Color::Rgb(36, 40, 59),
+            confidence_colors: ConfidenceColors {
+                highest: Color::Rgb(158, 206, 106), // Green
+                high: Color::Rgb(73, 162, 166),     // Teal
+                low: Color::Rgb(86, 95, 137),       // Comment
+                garbage: Color::Rgb(247, 118, 142), // Red
+            },
         }
     }
 
@@ -125,6 +146,12 @@ impl Theme {
             },
             popup_border: Color::Rgb(41, 89, 170),
             popup_bg: Color::Rgb(230, 231, 237),
+            confidence_colors: ConfidenceColors {
+                highest: Color::Rgb(56, 95, 13),  // Green
+                high: Color::Rgb(40, 105, 131),   // Teal/Blue
+                low: Color::Rgb(154, 165, 206),   // Comment
+                garbage: Color::Rgb(140, 67, 81), // Red
+            },
         }
     }
 
@@ -157,6 +184,12 @@ impl Theme {
             },
             popup_border: Color::Rgb(189, 147, 249),
             popup_bg: Color::Rgb(40, 42, 54),
+            confidence_colors: ConfidenceColors {
+                highest: Color::Rgb(80, 250, 123), // Green
+                high: Color::Rgb(139, 233, 253),   // Cyan
+                low: Color::Rgb(98, 114, 164),     // Comment
+                garbage: Color::Rgb(255, 85, 85),  // Red
+            },
         }
     }
 
@@ -189,6 +222,12 @@ impl Theme {
             },
             popup_border: Color::Rgb(38, 139, 210),
             popup_bg: Color::Rgb(0, 43, 54),
+            confidence_colors: ConfidenceColors {
+                highest: Color::Rgb(133, 153, 0), // Green
+                high: Color::Rgb(42, 161, 152),   // Cyan
+                low: Color::Rgb(88, 110, 117),    // Base01
+                garbage: Color::Rgb(220, 50, 47), // Red
+            },
         }
     }
 
@@ -221,6 +260,12 @@ impl Theme {
             },
             popup_border: Color::Rgb(166, 226, 46),
             popup_bg: Color::Rgb(39, 40, 34),
+            confidence_colors: ConfidenceColors {
+                highest: Color::Rgb(166, 226, 46), // Green
+                high: Color::Rgb(102, 217, 239),   // Blue
+                low: Color::Rgb(117, 113, 94),     // Grey
+                garbage: Color::Rgb(249, 38, 114), // Pink/Red
+            },
         }
     }
 
@@ -253,6 +298,12 @@ impl Theme {
             },
             popup_border: Color::Rgb(136, 192, 208),
             popup_bg: Color::Rgb(46, 52, 64),
+            confidence_colors: ConfidenceColors {
+                highest: Color::Rgb(163, 190, 140), // Green
+                high: Color::Rgb(136, 192, 208),    // Cyan
+                low: Color::Rgb(76, 86, 106),       // Grey
+                garbage: Color::Rgb(191, 97, 106),  // Red
+            },
         }
     }
 
@@ -285,6 +336,12 @@ impl Theme {
             },
             popup_border: Color::Rgb(254, 128, 25),
             popup_bg: Color::Rgb(40, 40, 40),
+            confidence_colors: ConfidenceColors {
+                highest: Color::Rgb(184, 187, 38), // Green
+                high: Color::Rgb(142, 192, 124),   // Aqua
+                low: Color::Rgb(146, 131, 116),    // Grey
+                garbage: Color::Rgb(251, 73, 52),  // Red
+            },
         }
     }
 
@@ -317,6 +374,12 @@ impl Theme {
             },
             popup_border: Color::Rgb(97, 175, 239),
             popup_bg: Color::Rgb(40, 44, 52),
+            confidence_colors: ConfidenceColors {
+                highest: Color::Rgb(152, 195, 121), // Green
+                high: Color::Rgb(86, 182, 194),     // Cyan
+                low: Color::Rgb(92, 99, 112),       // Grey
+                garbage: Color::Rgb(224, 108, 117), // Red
+            },
         }
     }
 
@@ -349,6 +412,12 @@ impl Theme {
             },
             popup_border: Color::Rgb(137, 180, 250),
             popup_bg: Color::Rgb(30, 30, 46),
+            confidence_colors: ConfidenceColors {
+                highest: Color::Rgb(166, 227, 161), // Green
+                high: Color::Rgb(129, 200, 190),    // Teal
+                low: Color::Rgb(147, 153, 178),     // Overlay/Grey
+                garbage: Color::Rgb(243, 139, 168), // Red
+            },
         }
     }
 
@@ -381,6 +450,12 @@ impl Theme {
             },
             popup_border: Color::Rgb(196, 167, 231), // Iris
             popup_bg: Color::Rgb(25, 23, 36),
+            confidence_colors: ConfidenceColors {
+                highest: Color::Rgb(156, 207, 216), // Foam
+                high: Color::Rgb(49, 116, 143),     // Pine
+                low: Color::Rgb(110, 106, 134),     // Muted
+                garbage: Color::Rgb(235, 111, 146), // Love
+            },
         }
     }
 
@@ -413,6 +488,12 @@ impl Theme {
             },
             popup_border: Color::Rgb(196, 167, 231),
             popup_bg: Color::Rgb(35, 33, 54),
+            confidence_colors: ConfidenceColors {
+                highest: Color::Rgb(156, 207, 216), // Foam
+                high: Color::Rgb(62, 143, 176),     // Pine
+                low: Color::Rgb(110, 106, 134),     // Muted
+                garbage: Color::Rgb(235, 111, 146), // Love
+            },
         }
     }
 
@@ -445,6 +526,12 @@ impl Theme {
             },
             popup_border: Color::Rgb(144, 122, 169),
             popup_bg: Color::Rgb(250, 244, 237),
+            confidence_colors: ConfidenceColors {
+                highest: Color::Rgb(86, 148, 159), // Foam
+                high: Color::Rgb(40, 105, 131),    // Pine
+                low: Color::Rgb(152, 147, 165),    // Muted
+                garbage: Color::Rgb(180, 99, 122), // Love
+            },
         }
     }
 

@@ -1,6 +1,7 @@
 use crate::cbor_tree::{CborNode, CborType};
 use crate::config::BYTES_PER_ROW;
 use crate::theme::Theme;
+use crate::util;
 use color_eyre::Result;
 use ratatui::layout::Rect;
 use std::path::Path;
@@ -234,6 +235,7 @@ impl App {
             depth: 0,
             path: vec![],
             range: 0..self.raw_bytes.len(),
+            confidence: None,
         };
 
         let children: Vec<CborNode> = self
@@ -262,9 +264,11 @@ impl App {
                     },
                 ];
 
+                let confidence = util::get_confidence_level(chunk.score);
+
                 // Create a node for the chunk
                 let mut chunk_node = CborNode {
-                    key: Some(format!("Chunk #{} (Score: {})", i + 1, chunk.score)),
+                    key: Some(format!("Chunk #{}", i + 1)), // Just the name, symbol/color handled in rendering
                     value_type: CborType::Array,
                     value_preview: format!(
                         "offset 0x{:X}, {} items",
@@ -272,9 +276,15 @@ impl App {
                         chunk.items.len()
                     ),
                     full_value: format!(
-                        "Chunk at offset 0x{:X} with {} items. Score: {}",
+                        "Chunk at offset 0x{:X} with {} items. Confidence: {} (Score: {})",
                         chunk.offset,
                         chunk.items.len(),
+                        match confidence {
+                            crate::cbor_tree::ConfidenceLevel::Highest => "Highest",
+                            crate::cbor_tree::ConfidenceLevel::High => "High",
+                            crate::cbor_tree::ConfidenceLevel::Low => "Low",
+                            crate::cbor_tree::ConfidenceLevel::Garbage => "Garbage",
+                        },
                         chunk.score
                     ),
                     children: vec![],
@@ -282,6 +292,7 @@ impl App {
                     depth: 1,
                     path: chunk_path.clone(),
                     range: chunk.offset..chunk_range_end,
+                    confidence: Some(confidence),
                 };
 
                 // Attach the chunk's subitems to the node

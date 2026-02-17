@@ -1,6 +1,6 @@
 use crate::app::{App, Focus};
 use crate::cbor_tree::{CborNode, CborType};
-use crate::config;
+use crate::{config, util};
 use color_eyre::Result;
 use crossterm::event::KeyEvent;
 use ratatui::{
@@ -241,9 +241,26 @@ fn draw_tree_node(
         node.value_preview.clone()
     };
 
-    let spans = vec![
+    let (confidence_symbol, confidence_color) = if let Some(level) = node.confidence {
+        let (sym, col) = util::get_confidence_appearance(level, &app.theme);
+        (sym, col)
+    } else {
+        (String::new(), Color::Reset)
+    };
+
+    let mut spans = vec![
         Span::raw(indent),
         Span::styled(expand_icon, Style::default().fg(app.theme.header_fg)),
+    ];
+
+    if !confidence_symbol.is_empty() {
+        spans.push(Span::styled(
+            confidence_symbol,
+            Style::default().fg(confidence_color),
+        ));
+    }
+
+    spans.extend(vec![
         Span::styled(key_part, Style::default().fg(key_color)),
         Span::styled(
             format!("[{}] ", node.value_type),
@@ -257,7 +274,7 @@ fn draw_tree_node(
                 Color::DarkGray
             }),
         ),
-    ];
+    ]);
 
     Line::from(spans).style(_line_style)
 }

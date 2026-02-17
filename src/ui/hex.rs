@@ -1,6 +1,7 @@
 use crate::app::{App, Focus};
 use crate::cbor_tree::CborNode;
 use crate::config::{self, BYTES_PER_ROW};
+use crate::util;
 use color_eyre::Result;
 use crossterm::event::KeyEvent;
 use ratatui::{
@@ -187,15 +188,15 @@ fn draw_hex_row(
         let byte_idx = offset + col;
         if byte_idx < app.raw_bytes.len() {
             let byte = app.raw_bytes[byte_idx];
-            let byte_type = config::get_byte_type(byte);
+            let byte_type = util::get_byte_type(byte);
 
             // Default color from byte type
             let base_color = match byte_type {
-                config::ByteType::Null => app.theme.byte_colors.null,
-                config::ByteType::AsciiPrintable => app.theme.byte_colors.ascii_printable,
-                config::ByteType::AsciiWhitespace => app.theme.byte_colors.ascii_whitespace,
-                config::ByteType::AsciiOther => app.theme.byte_colors.ascii_other,
-                config::ByteType::NonAscii => app.theme.byte_colors.non_ascii,
+                util::ByteType::Null => app.theme.byte_colors.null,
+                util::ByteType::AsciiPrintable => app.theme.byte_colors.ascii_printable,
+                util::ByteType::AsciiWhitespace => app.theme.byte_colors.ascii_whitespace,
+                util::ByteType::AsciiOther => app.theme.byte_colors.ascii_other,
+                util::ByteType::NonAscii => app.theme.byte_colors.non_ascii,
             };
 
             let mut bg_color = app.theme.bg;
@@ -243,13 +244,13 @@ fn draw_hex_row(
                 '.'
             };
 
-            let byte_type = config::get_byte_type(byte);
+            let byte_type = util::get_byte_type(byte);
             let base_color = match byte_type {
-                config::ByteType::Null => app.theme.byte_colors.null,
-                config::ByteType::AsciiPrintable => app.theme.byte_colors.ascii_printable,
-                config::ByteType::AsciiWhitespace => app.theme.byte_colors.ascii_whitespace,
-                config::ByteType::AsciiOther => app.theme.byte_colors.ascii_other,
-                config::ByteType::NonAscii => app.theme.byte_colors.non_ascii,
+                util::ByteType::Null => app.theme.byte_colors.null,
+                util::ByteType::AsciiPrintable => app.theme.byte_colors.ascii_printable,
+                util::ByteType::AsciiWhitespace => app.theme.byte_colors.ascii_whitespace,
+                util::ByteType::AsciiOther => app.theme.byte_colors.ascii_other,
+                util::ByteType::NonAscii => app.theme.byte_colors.non_ascii,
             };
 
             let mut bg_color = app.theme.bg;

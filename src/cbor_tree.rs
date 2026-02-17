@@ -13,6 +13,17 @@ pub struct CborNode {
     pub depth: usize,
     pub path: Vec<PathSegment>,
     pub range: std::ops::Range<usize>,
+    pub confidence: Option<ConfidenceLevel>,
+}
+
+/// Used to represent the confidence level of a node
+/// being actual CBOR data (see scanner.rs for details)
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum ConfidenceLevel {
+    Highest,
+    High,
+    Low,
+    Garbage,
 }
 
 /// A segment in the breadcrumb path
