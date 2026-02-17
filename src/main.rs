@@ -20,12 +20,11 @@ use std::io;
 use std::path::PathBuf;
 
 #[derive(Parser, Debug)]
-#[command(name = "cbor-explorer")]
-#[command(author = "MiniMax Agent")]
-#[command(version = "0.1.0")]
-#[command(about = "A TUI application for exploring CBOR files", long_about = None)]
+#[command(name = "cbx")]
+#[command(author = "Yuri Krupenin <yuri.krupenin@gmail.com>")]
+#[command(version)]
+#[command(about = "A TUI application for inspecting CBOR data", long_about = None)]
 struct Args {
-    /// Path to the CBOR file to explore
     #[arg(value_name = "FILE")]
     file: PathBuf,
 }
