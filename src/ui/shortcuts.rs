@@ -11,7 +11,7 @@ pub fn draw(frame: &mut Frame, app: &App, area: Rect) {
     let mut shortcuts = vec![
         ("q", "Quit"),
         ("?", "Help"),
-        ("Tab", "Switch View"),
+        ("Tab", "Focus"),
         ("x", "Hex/Dec"),
         ("t", "Theme"),
     ];
@@ -22,7 +22,7 @@ pub fn draw(frame: &mut Frame, app: &App, area: Rect) {
 
     shortcuts.push(("m", "Mode"));
 
-    shortcuts.extend_from_slice(&[("/", "Search"), (":", "Go to"), ("Space", "Popup")]);
+    shortcuts.extend_from_slice(&[("/", "Search"), (":", "Go to"), ("Space", "Details")]);
 
     let mut spans = Vec::new();
     for (key, desc) in shortcuts {
