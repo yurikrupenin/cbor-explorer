@@ -116,8 +116,9 @@ jobs:
           confinement: strict
           grade: stable
           platforms:
-            - build-on: amd64
-              build-for: ${SNAP_TARGET_ARCH}
+            ${SNAP_TARGET_ARCH}:
+              build-on: [amd64]
+              build-for: [${SNAP_TARGET_ARCH}]
           
           apps:
             cbx:
@@ -135,7 +136,7 @@ jobs:
 
       - name: Package Snap
         if: contains(matrix.target, 'linux')
-        uses: snapcore/action-build@v1
+        uses: canonical/action-build@v1
         id: snap-build
         with:
           path: snap_build
