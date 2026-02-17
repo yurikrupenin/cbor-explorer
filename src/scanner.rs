@@ -53,8 +53,8 @@ const SCORE_NESTING_BONUS: usize = 5;
 
 const SCORE_THRESHOLD: usize = 30;
 
-const MAX_TEXT_CHUNK_SIZE: usize = 1024;
-const MAX_BYTES_CHUNK_SIZE: usize = 1024;
+const MAX_TEXT_CHUNK_SIZE: usize = 128;
+const MAX_BYTES_CHUNK_SIZE: usize = 128;
 
 #[derive(Debug, Clone)]
 pub struct CborChunk {
