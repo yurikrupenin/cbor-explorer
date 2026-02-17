@@ -1,0 +1,29 @@
+name: cbx
+base: core24
+version: '${VERSION}'
+summary: A TUI application for inspecting CBOR data
+description: |
+  A TUI application for inspecting CBOR (Concise Binary Object Representation) data.
+  Cbx provides a tree-like view of the data structure, syntax highlighting, and
+  heuristic detection options (scanning files for embedded CBOR data structures).
+confinement: strict
+grade: stable
+platforms:
+  ${SNAP_TARGET_ARCH}:
+    build-on: [amd64]
+    build-for: [${SNAP_TARGET_ARCH}]
+
+apps:
+  cbx:
+    command: bin/cbx
+    plugs: [home, removable-media]
+
+parts:
+  cbx:
+    plugin: dump
+    source: .
+    organize:
+      cbx: bin/cbx
+
+# This file is a template and will be processed by envsubst in the CI pipeline
+# to replace ${VERSION} and ${SNAP_TARGET_ARCH}.
