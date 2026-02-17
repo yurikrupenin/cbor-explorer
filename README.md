@@ -59,7 +59,7 @@ By default, `cbx` assumes that the file contains a single CBOR sequence.
 
 If your file contains multiple embedded CBOR sequences, press `m` to toggle **Auto Mode**. This uses simple heuristics to scan the file and identify potential CBOR sequences.
 
-The scanning not perfect but works pretty well for discovering complex nested structures.
+The scanning is not perfect but works pretty well for discovering complex nested structures.
 
 ## License
 
