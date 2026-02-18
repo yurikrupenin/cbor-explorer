@@ -45,6 +45,7 @@ cbx <FILE>
 | `x` | Toggle Hex / Dec integers |
 | `e` | Expand all nodes |
 | `c` | Collapse all nodes |
+| `z` | Zoom Into/Out of a data chunk |
 | `Enter` / `Space` | Toggle node expansion |
 | `j` / `↓` | Move Down |
 | `k` / `↑` | Move Up |
@@ -60,6 +61,12 @@ By default, `cbx` assumes that the file contains a single CBOR sequence.
 If your file contains multiple embedded CBOR sequences, press `m` to toggle **Auto Mode**. This uses simple heuristics to scan the file and identify potential CBOR sequences.
 
 The scanning is not perfect but works pretty well for discovering complex nested structures.
+
+#### Zoom into data
+
+If you have a good idea of where the target data is located in a large file (or the utility was able to find something, but borked the beginning), you can use `z` to zoom into the data, reinterpreting the data at the cursor as the beginning of a CBOR sequence.
+
+![A recording of a zoom-in operation](zoomin.gif)
 
 ## License
 
