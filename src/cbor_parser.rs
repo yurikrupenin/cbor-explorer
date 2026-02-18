@@ -2,6 +2,12 @@ use crate::cbor_tree::{CborNode, CborType, PathSegment};
 use ciborium::value::Value;
 use std::ops::Range;
 
+const MAX_LEN: usize = 128;
+const MAX_TEXT_LEN: usize = 128;
+const MAX_ARR_LEN: usize = 128;
+
+const HEX_CHARS: &[u8] = b"0123456789abcdef";
+
 /// Parsed CBOR item with its byte range
 #[derive(Debug, Clone)]
 pub struct ParsedCbor {
@@ -43,23 +49,40 @@ impl ParsedCbor {
                 false,
             ),
             Value::Bytes(bytes) => {
-                let full = bytes
-                    .iter()
-                    .map(|b| format!("{:02x}", b))
-                    .collect::<Vec<_>>()
-                    .join(" ");
+                let mut full = String::with_capacity(std::cmp::min(bytes.len() * 3, MAX_LEN + 2));
+
+                let mut iter = bytes.iter();
+                if let Some(first) = iter.next() {
+                    push_hex_byte(&mut full, *first);
+
+                    for b in iter {
+                        if full.len() >= MAX_LEN {
+                            full.push_str("...");
+                            break;
+                        }
+                        full.push(' ');
+                        push_hex_byte(&mut full, *b);
+                    }
+                }
+
                 let preview = if bytes.len() <= 16 {
                     full.clone()
                 } else {
-                    format!(
-                        "{} ... ({} bytes)",
-                        bytes[..8]
-                            .iter()
-                            .map(|b| format!("{:02x}", b))
-                            .collect::<Vec<_>>()
-                            .join(" "),
-                        bytes.len()
-                    )
+                    // Preview: first 8 bytes only
+                    let mut p = String::with_capacity(8 * 3 + 2);
+                    let mut p_iter = bytes.iter().take(8);
+
+                    if let Some(first) = p_iter.next() {
+                        push_hex_byte(&mut p, *first);
+                        for b in p_iter {
+                            p.push(' ');
+                            push_hex_byte(&mut p, *b);
+                        }
+                    }
+
+                    use std::fmt::Write;
+                    let _ = write!(p, " ... ({} bytes)", bytes.len());
+                    p
                 };
                 (CborType::ByteString, preview, full, false)
             }
@@ -69,24 +92,48 @@ impl ParsedCbor {
                 } else {
                     format!("\"{}...\" ({} chars)", &s[..37], s.len())
                 };
-                (CborType::TextString, preview, s.clone(), false)
+
+                // Truncate full value if too long
+                let full_value = if s.len() > MAX_TEXT_LEN {
+                    // Ensure char boundary
+                    let mut len = MAX_TEXT_LEN;
+                    while !s.is_char_boundary(len) {
+                        len -= 1;
+                    }
+                    format!("{}...", &s[..len])
+                } else {
+                    s.clone()
+                };
+
+                (CborType::TextString, preview, full_value, false)
             }
             Value::Array(arr) => {
                 let is_all_integers = arr.iter().all(|v| matches!(v, Value::Integer(_)));
                 let preview = format!("[{} items]", arr.len());
                 let full_value = if is_all_integers && !arr.is_empty() {
-                    let items: Vec<String> = arr
-                        .iter()
-                        .map(|v| {
-                            if let Value::Integer(i) = v {
-                                let val: i128 = (*i).into();
-                                format!("0x{:X}", val)
-                            } else {
-                                String::new()
-                            }
-                        })
-                        .collect();
-                    format!("[{}]", items.join(", "))
+                    // Truncate arrays
+                    let mut s =
+                        String::with_capacity(std::cmp::min(arr.len() * 4 + 2, MAX_ARR_LEN + 2));
+                    s.push('[');
+                    for (i, v) in arr.iter().enumerate() {
+                        if s.len() >= MAX_ARR_LEN {
+                            s.push_str("...]");
+                            break;
+                        }
+
+                        if i > 0 {
+                            s.push_str(", ");
+                        }
+                        if let Value::Integer(int_val) = v {
+                            let val: i128 = (*int_val).into();
+                            use std::fmt::Write;
+                            let _ = write!(s, "0x{:X}", val);
+                        }
+                    }
+                    if !s.ends_with(']') {
+                        s.push(']');
+                    }
+                    s
                 } else {
                     format!("Array with {} items", arr.len())
                 };
@@ -352,6 +399,12 @@ impl<'a> CborParser<'a> {
             None
         }
     }
+}
+
+#[inline]
+fn push_hex_byte(s: &mut String, b: u8) {
+    s.push(HEX_CHARS[(b >> 4) as usize] as char);
+    s.push(HEX_CHARS[(b & 0x0F) as usize] as char);
 }
 
 #[cfg(test)]
