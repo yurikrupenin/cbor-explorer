@@ -22,9 +22,15 @@ rand = "0.8"
 name = "cbx"
 path = "src/main.rs"
 
+[[bin]]
+name = "generate_large_embedded"
+path = "src/utilities/generate_large_embedded.rs"
+
 [package.metadata.deb]
 maintainer = "Yuri Krupenin <yuri.krupenin@gmail.com>"
 copyright = "2026, Yuri Krupenin"
 depends = "$auto"
 section = "utility"
 
+#[profile.release]
+#debug = true
