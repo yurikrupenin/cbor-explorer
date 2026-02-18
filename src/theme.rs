@@ -36,11 +36,49 @@ pub struct ByteColors {
 
 impl Default for Theme {
     fn default() -> Self {
-        Theme::tokyo_night()
+        Theme::terminal_default()
     }
 }
 
 impl Theme {
+    pub fn terminal_default() -> Self {
+        Self {
+            name: "Default".to_string(),
+            bg: Color::Reset,
+            fg: Color::Reset,
+            selection_bg: Color::Blue,
+            selection_fg: Color::White,
+            border_focused: Color::Blue,
+            border_unfocused: Color::DarkGray,
+            header_fg: Color::Cyan,
+            depth_colors: vec![
+                Color::Blue,
+                Color::Yellow,
+                Color::Red,
+                Color::Magenta,
+                Color::Cyan,
+                Color::Green,
+                Color::Blue,
+                Color::Yellow,
+            ],
+            byte_colors: ByteColors {
+                null: Color::DarkGray,
+                ascii_printable: Color::Cyan,
+                ascii_whitespace: Color::Green,
+                ascii_other: Color::Yellow,
+                non_ascii: Color::Red,
+            },
+            popup_border: Color::Blue,
+            popup_bg: Color::Reset,
+            confidence_colors: ConfidenceColors {
+                highest: Color::Green,
+                high: Color::Cyan,
+                low: Color::DarkGray,
+                garbage: Color::Red,
+            },
+        }
+    }
+
     pub fn tokyo_night() -> Self {
         Self {
             name: "Tokyo Night".to_string(),

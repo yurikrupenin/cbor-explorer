@@ -91,6 +91,7 @@ impl App {
 
         // Initialize themes
         let themes = vec![
+            Theme::terminal_default(),
             Theme::tokyo_night(),
             Theme::tokyo_night_storm(),
             Theme::tokyo_night_light(),
@@ -119,7 +120,7 @@ impl App {
             .iter()
             .find(|t| t.name == config.theme)
             .cloned()
-            .unwrap_or_else(Theme::tokyo_night);
+            .unwrap_or_else(Theme::terminal_default);
 
         let show_hex_integers = config.show_hex_integers;
 
