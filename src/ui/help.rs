@@ -81,6 +81,10 @@ pub fn draw(frame: &mut Frame, app: &App, area: Rect) {
             Span::raw("Toggle Single CBOR document/Scan Mode"),
         ]),
         Line::from(vec![
+            Span::styled("z        ", Style::default().fg(Color::Yellow)),
+            Span::raw("Zoom In/Out (at cursor)"),
+        ]),
+        Line::from(vec![
             Span::styled("g/Home   ", Style::default().fg(Color::Yellow)),
             Span::raw("Go to start"),
         ]),

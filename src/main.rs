@@ -7,6 +7,7 @@ mod scanner;
 mod theme;
 mod ui;
 mod util;
+mod zoom;
 
 use app::App;
 use clap::Parser;
@@ -80,20 +81,26 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> Result<()> 
     loop {
         terminal.draw(|f| ui::draw(f, app))?;
 
-        match event::read()? {
-            Event::Key(key) => {
-                if key.modifiers.contains(KeyModifiers::CONTROL) && key.code == KeyCode::Char('c') {
-                    return Ok(());
-                }
+        if event::poll(std::time::Duration::from_millis(100))? {
+            match event::read()? {
+                Event::Key(key) => {
+                    if key.modifiers.contains(KeyModifiers::CONTROL)
+                        && key.code == KeyCode::Char('c')
+                    {
+                        return Ok(());
+                    }
 
-                // Delegate input handling to UI widgets
-                ui::handle_input(app, key)?;
+                    // Delegate input handling to UI widgets
+                    ui::handle_input(app, key)?;
+                }
+                Event::Mouse(mouse) => {
+                    ui::handle_mouse_input(app, mouse)?;
+                }
+                _ => {}
             }
-            Event::Mouse(mouse) => {
-                ui::handle_mouse_input(app, mouse)?;
-            }
-            _ => {}
         }
+
+        app.tick();
 
         if app.should_quit {
             return Ok(());

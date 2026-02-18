@@ -21,6 +21,11 @@ pub fn draw(frame: &mut Frame, app: &App, area: Rect) {
     }
 
     shortcuts.push(("m", "Mode"));
+    if app.is_zoomed {
+        shortcuts.push(("z", "Zoom Out"));
+    } else {
+        shortcuts.push(("z", "Zoom In"));
+    }
 
     shortcuts.extend_from_slice(&[("/", "Search"), (":", "Go to"), ("Space", "Details")]);
 

@@ -40,6 +40,7 @@ pub const KEY_PREV: &[KeyCode] = &[KeyCode::Char('N')];
 pub const KEY_TOGGLE_POPUP: &[KeyCode] = &[KeyCode::Char(' ')];
 pub const KEY_SORT: &[KeyCode] = &[KeyCode::Char('s')];
 pub const KEY_MODE: &[KeyCode] = &[KeyCode::Char('m')];
+pub const KEY_ZOOM: &[KeyCode] = &[KeyCode::Char('z')];
 
 // Tree Actions
 pub const KEY_EXPAND: &[KeyCode] = &[KeyCode::Enter, KeyCode::Right];
@@ -65,6 +66,7 @@ pub enum KeyAction {
     TogglePopup,
     Sort,
     Mode,
+    Zoom,
     Up,
     Down,
     Left,
@@ -128,6 +130,9 @@ pub fn resolve_key(key: KeyEvent) -> KeyAction {
     }
     if KEY_MODE.contains(&code) {
         return KeyAction::Mode;
+    }
+    if KEY_ZOOM.contains(&code) {
+        return KeyAction::Zoom;
     }
     if KEY_UP.contains(&code) {
         return KeyAction::Up;

@@ -10,11 +10,13 @@ pub struct Theme {
     pub border_focused: Color,
     pub border_unfocused: Color,
     pub header_fg: Color,
+    pub accent_color: Color,
     pub depth_colors: Vec<Color>,
     pub byte_colors: ByteColors,
     pub popup_border: Color,
     pub popup_bg: Color,
     pub confidence_colors: ConfidenceColors,
+    pub notification_colors: NotificationColors,
 }
 
 #[derive(Debug, Clone)]
@@ -23,6 +25,13 @@ pub struct ConfidenceColors {
     pub high: Color,
     pub low: Color,
     pub garbage: Color,
+}
+
+#[derive(Debug, Clone)]
+pub struct NotificationColors {
+    pub info: Color,
+    pub warning: Color,
+    pub error: Color,
 }
 
 #[derive(Debug, Clone)]
@@ -51,6 +60,7 @@ impl Theme {
             border_focused: Color::Blue,
             border_unfocused: Color::DarkGray,
             header_fg: Color::Cyan,
+            accent_color: Color::Blue,
             depth_colors: vec![
                 Color::Blue,
                 Color::Yellow,
@@ -76,6 +86,11 @@ impl Theme {
                 low: Color::DarkGray,
                 garbage: Color::Red,
             },
+            notification_colors: NotificationColors {
+                info: Color::Cyan,
+                warning: Color::Yellow,
+                error: Color::Red,
+            },
         }
     }
 
@@ -89,6 +104,7 @@ impl Theme {
             border_focused: Color::Rgb(122, 162, 247), // Blue
             border_unfocused: Color::Rgb(86, 95, 137), // Comment/Darker
             header_fg: Color::Rgb(122, 162, 247),
+            accent_color: Color::Rgb(122, 162, 247), // Blue
             depth_colors: vec![
                 Color::Rgb(255, 215, 0),  // Gold - selected item (depth 0)
                 Color::Rgb(255, 165, 0),  // Orange - parent
@@ -114,6 +130,11 @@ impl Theme {
                 low: Color::Rgb(86, 95, 137),       // Comment (Dim)
                 garbage: Color::Rgb(247, 118, 142), // Red
             },
+            notification_colors: NotificationColors {
+                info: Color::Rgb(122, 162, 247),  // Blue
+                warning: Color::Indexed(162),     // Matches ascii_other
+                error: Color::Rgb(247, 118, 142), // Red
+            },
         }
     }
 
@@ -127,6 +148,7 @@ impl Theme {
             border_focused: Color::Rgb(122, 162, 247), // Blue
             border_unfocused: Color::Rgb(86, 95, 137), // Comment
             header_fg: Color::Rgb(122, 162, 247),
+            accent_color: Color::Rgb(122, 162, 247), // Blue
             depth_colors: vec![
                 Color::Rgb(255, 158, 100), // Orange
                 Color::Rgb(247, 118, 142), // Red
@@ -152,6 +174,11 @@ impl Theme {
                 low: Color::Rgb(86, 95, 137),       // Comment
                 garbage: Color::Rgb(247, 118, 142), // Red
             },
+            notification_colors: NotificationColors {
+                info: Color::Rgb(122, 162, 247),    // Blue
+                warning: Color::Rgb(224, 175, 104), // Yellow
+                error: Color::Rgb(247, 118, 142),   // Red
+            },
         }
     }
 
@@ -165,6 +192,7 @@ impl Theme {
             border_focused: Color::Rgb(41, 89, 170), // Blue
             border_unfocused: Color::Rgb(154, 165, 206), // Comment
             header_fg: Color::Rgb(41, 89, 170),
+            accent_color: Color::Rgb(41, 89, 170), // Blue
             depth_colors: vec![
                 Color::Rgb(143, 94, 21), // Yellow/Bronze
                 Color::Rgb(140, 67, 81), // Red
@@ -190,6 +218,11 @@ impl Theme {
                 low: Color::Rgb(154, 165, 206),   // Comment
                 garbage: Color::Rgb(140, 67, 81), // Red
             },
+            notification_colors: NotificationColors {
+                info: Color::Rgb(41, 89, 170),    // Blue
+                warning: Color::Rgb(143, 94, 21), // Bronze/Yellow
+                error: Color::Rgb(140, 67, 81),   // Red
+            },
         }
     }
 
@@ -203,6 +236,7 @@ impl Theme {
             border_focused: Color::Rgb(189, 147, 249), // Purple
             border_unfocused: Color::Rgb(98, 114, 164), // Comment
             header_fg: Color::Rgb(80, 250, 123),       // Green
+            accent_color: Color::Rgb(189, 147, 249),   // Purple
             depth_colors: vec![
                 Color::Rgb(255, 121, 198), // Pink
                 Color::Rgb(189, 147, 249), // Purple
@@ -228,6 +262,11 @@ impl Theme {
                 low: Color::Rgb(98, 114, 164),     // Comment
                 garbage: Color::Rgb(255, 85, 85),  // Red
             },
+            notification_colors: NotificationColors {
+                info: Color::Rgb(80, 250, 123),     // Green
+                warning: Color::Rgb(255, 184, 108), // Orange
+                error: Color::Rgb(255, 85, 85),     // Red
+            },
         }
     }
 
@@ -241,6 +280,7 @@ impl Theme {
             border_focused: Color::Rgb(38, 139, 210),   // Blue
             border_unfocused: Color::Rgb(88, 110, 117), // Base01
             header_fg: Color::Rgb(133, 153, 0),         // Green
+            accent_color: Color::Rgb(38, 139, 210),     // Blue
             depth_colors: vec![
                 Color::Rgb(181, 137, 0),   // Yellow
                 Color::Rgb(203, 75, 22),   // Orange
@@ -266,6 +306,11 @@ impl Theme {
                 low: Color::Rgb(88, 110, 117),    // Base01
                 garbage: Color::Rgb(220, 50, 47), // Red
             },
+            notification_colors: NotificationColors {
+                info: Color::Rgb(133, 153, 0),    // Green
+                warning: Color::Rgb(203, 75, 22), // Orange
+                error: Color::Rgb(220, 50, 47),   // Red
+            },
         }
     }
 
@@ -279,6 +324,7 @@ impl Theme {
             border_focused: Color::Rgb(166, 226, 46), // Green
             border_unfocused: Color::Rgb(117, 113, 94), // Grey
             header_fg: Color::Rgb(102, 217, 239),     // Blue
+            accent_color: Color::Rgb(249, 38, 114),   // Pink
             depth_colors: vec![
                 Color::Rgb(253, 151, 31),  // Orange
                 Color::Rgb(166, 226, 46),  // Green
@@ -304,6 +350,11 @@ impl Theme {
                 low: Color::Rgb(117, 113, 94),     // Grey
                 garbage: Color::Rgb(249, 38, 114), // Pink/Red
             },
+            notification_colors: NotificationColors {
+                info: Color::Rgb(102, 217, 239),    // Blue
+                warning: Color::Rgb(174, 129, 255), // Purple (ascii_other)
+                error: Color::Rgb(249, 38, 114),    // Pink/Red
+            },
         }
     }
 
@@ -316,7 +367,8 @@ impl Theme {
             selection_fg: Color::Rgb(236, 239, 244),
             border_focused: Color::Rgb(136, 192, 208), // Cyan
             border_unfocused: Color::Rgb(76, 86, 106),
-            header_fg: Color::Rgb(143, 188, 187), // Teal
+            header_fg: Color::Rgb(143, 188, 187),    // Teal
+            accent_color: Color::Rgb(136, 192, 208), // Cyan
             depth_colors: vec![
                 Color::Rgb(191, 97, 106),  // Red
                 Color::Rgb(208, 135, 112), // Orange
@@ -342,6 +394,11 @@ impl Theme {
                 low: Color::Rgb(76, 86, 106),       // Grey
                 garbage: Color::Rgb(191, 97, 106),  // Red
             },
+            notification_colors: NotificationColors {
+                info: Color::Rgb(143, 188, 187),    // Teal
+                warning: Color::Rgb(208, 135, 112), // Orange
+                error: Color::Rgb(191, 97, 106),    // Red
+            },
         }
     }
 
@@ -354,7 +411,8 @@ impl Theme {
             selection_fg: Color::Rgb(251, 241, 199),
             border_focused: Color::Rgb(254, 128, 25), // Orange
             border_unfocused: Color::Rgb(146, 131, 116),
-            header_fg: Color::Rgb(184, 187, 38), // Green
+            header_fg: Color::Rgb(184, 187, 38),    // Green
+            accent_color: Color::Rgb(254, 128, 25), // Orange
             depth_colors: vec![
                 Color::Rgb(251, 73, 52),   // Red
                 Color::Rgb(254, 128, 25),  // Orange
@@ -380,6 +438,11 @@ impl Theme {
                 low: Color::Rgb(146, 131, 116),    // Grey
                 garbage: Color::Rgb(251, 73, 52),  // Red
             },
+            notification_colors: NotificationColors {
+                info: Color::Rgb(184, 187, 38),     // Green
+                warning: Color::Rgb(131, 165, 152), // Blue (ascii_other)
+                error: Color::Rgb(251, 73, 52),     // Red
+            },
         }
     }
 
@@ -392,7 +455,8 @@ impl Theme {
             selection_fg: Color::Rgb(220, 223, 228),
             border_focused: Color::Rgb(97, 175, 239), // Blue
             border_unfocused: Color::Rgb(92, 99, 112),
-            header_fg: Color::Rgb(152, 195, 121), // Green
+            header_fg: Color::Rgb(152, 195, 121),   // Green
+            accent_color: Color::Rgb(97, 175, 239), // Blue
             depth_colors: vec![
                 Color::Rgb(224, 108, 117), // Red
                 Color::Rgb(209, 154, 102), // Orange
@@ -418,6 +482,11 @@ impl Theme {
                 low: Color::Rgb(92, 99, 112),       // Grey
                 garbage: Color::Rgb(224, 108, 117), // Red
             },
+            notification_colors: NotificationColors {
+                info: Color::Rgb(152, 195, 121),   // Green
+                warning: Color::Rgb(86, 182, 194), // Cyan (ascii_other)
+                error: Color::Rgb(224, 108, 117),  // Red
+            },
         }
     }
 
@@ -430,7 +499,8 @@ impl Theme {
             selection_fg: Color::Rgb(205, 214, 244),
             border_focused: Color::Rgb(137, 180, 250), // Blue
             border_unfocused: Color::Rgb(88, 91, 112),
-            header_fg: Color::Rgb(166, 227, 161), // Green
+            header_fg: Color::Rgb(166, 227, 161),    // Green
+            accent_color: Color::Rgb(203, 166, 247), // Mauve
             depth_colors: vec![
                 Color::Rgb(243, 139, 168), // Red
                 Color::Rgb(250, 179, 135), // Peach
@@ -456,6 +526,11 @@ impl Theme {
                 low: Color::Rgb(147, 153, 178),     // Overlay/Grey
                 garbage: Color::Rgb(243, 139, 168), // Red
             },
+            notification_colors: NotificationColors {
+                info: Color::Rgb(166, 227, 161),    // Green
+                warning: Color::Rgb(137, 220, 235), // Sky (ascii_other)
+                error: Color::Rgb(243, 139, 168),   // Red
+            },
         }
     }
 
@@ -469,6 +544,7 @@ impl Theme {
             border_focused: Color::Rgb(196, 167, 231), // Iris
             border_unfocused: Color::Rgb(110, 106, 134), // Muted
             header_fg: Color::Rgb(49, 116, 143),       // Pine
+            accent_color: Color::Rgb(196, 167, 231),   // Iris
             depth_colors: vec![
                 Color::Rgb(246, 193, 119), // Gold
                 Color::Rgb(235, 188, 186), // Rose
@@ -494,6 +570,11 @@ impl Theme {
                 low: Color::Rgb(110, 106, 134),     // Muted
                 garbage: Color::Rgb(235, 111, 146), // Love
             },
+            notification_colors: NotificationColors {
+                info: Color::Rgb(49, 116, 143),     // Pine
+                warning: Color::Rgb(246, 193, 119), // Gold
+                error: Color::Rgb(235, 111, 146),   // Love
+            },
         }
     }
 
@@ -507,6 +588,7 @@ impl Theme {
             border_focused: Color::Rgb(196, 167, 231), // Iris
             border_unfocused: Color::Rgb(110, 106, 134), // Muted
             header_fg: Color::Rgb(62, 143, 176),       // Pine
+            accent_color: Color::Rgb(196, 167, 231),   // Iris
             depth_colors: vec![
                 Color::Rgb(246, 193, 119), // Gold
                 Color::Rgb(234, 154, 151), // Rose
@@ -532,6 +614,11 @@ impl Theme {
                 low: Color::Rgb(110, 106, 134),     // Muted
                 garbage: Color::Rgb(235, 111, 146), // Love
             },
+            notification_colors: NotificationColors {
+                info: Color::Rgb(62, 143, 176),     // Pine
+                warning: Color::Rgb(246, 193, 119), // Gold
+                error: Color::Rgb(235, 111, 146),   // Love
+            },
         }
     }
 
@@ -545,6 +632,7 @@ impl Theme {
             border_focused: Color::Rgb(144, 122, 169), // Iris
             border_unfocused: Color::Rgb(152, 147, 165), // Muted
             header_fg: Color::Rgb(40, 105, 131),       // Pine
+            accent_color: Color::Rgb(144, 122, 169),   // Iris
             depth_colors: vec![
                 Color::Rgb(234, 157, 52),  // Gold
                 Color::Rgb(215, 130, 126), // Rose
@@ -569,6 +657,11 @@ impl Theme {
                 high: Color::Rgb(40, 105, 131),    // Pine
                 low: Color::Rgb(152, 147, 165),    // Muted
                 garbage: Color::Rgb(180, 99, 122), // Love
+            },
+            notification_colors: NotificationColors {
+                info: Color::Rgb(40, 105, 131),    // Pine
+                warning: Color::Rgb(234, 157, 52), // Gold
+                error: Color::Rgb(180, 99, 122),   // Love
             },
         }
     }

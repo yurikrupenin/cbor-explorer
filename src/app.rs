@@ -8,6 +8,7 @@ use std::path::Path;
 
 use crate::config_store::{AppConfig, ConfigStore};
 use crate::scanner::{CborChunk, CborScanner, ScanMode};
+use crate::ui::notification::{Notification, NotificationSeverity}; // Add this import
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Focus {
@@ -64,6 +65,8 @@ pub struct App {
     pub should_quit: bool,
     pub tree_area: Rect,
     pub hex_area: Rect,
+    pub notification: Option<Notification>, // Add notification field
+    pub is_zoomed: bool,                    // Track zoom state
 }
 
 impl App {
@@ -156,6 +159,8 @@ impl App {
             should_quit: false,
             tree_area: Rect::default(),
             hex_area: Rect::default(),
+            notification: None,
+            is_zoomed: false,
         };
 
         app.rebuild_tree();
@@ -170,7 +175,7 @@ impl App {
         self.rescan_chunks();
     }
 
-    fn rescan_chunks(&mut self) {
+    pub fn rescan_chunks(&mut self) {
         let scanner = CborScanner::new(&self.raw_bytes);
         self.chunks = scanner.scan_for_cbor_sequences(self.scan_mode);
 
@@ -199,7 +204,7 @@ impl App {
         self.tree_offset = 0;
     }
 
-    fn rebuild_tree(&mut self) {
+    pub fn rebuild_tree(&mut self) {
         // No valid data, nothing to do.
         if self.chunks.is_empty() {
             self.tree = None;
@@ -221,6 +226,15 @@ impl App {
 
         // Otherwise: multiple CBOR-looking sequences are found.
         //
+        // Calculate the total range covered by all chunks
+        let min_offset = self.chunks.iter().map(|c| c.offset).min().unwrap_or(0);
+        let max_offset = self
+            .chunks
+            .iter()
+            .map(|c| c.items.last().map(|i| i.range.end).unwrap_or(c.offset))
+            .max()
+            .unwrap_or(self.raw_bytes.len());
+
         // Create a faux root node for display purposes;
         // attach every chunk we found to this item as children.
         let mut synthetic_root = CborNode {
@@ -235,7 +249,7 @@ impl App {
             expanded: true,
             depth: 0,
             path: vec![],
-            range: 0..self.raw_bytes.len(),
+            range: min_offset..max_offset,
             confidence: None,
         };
 
@@ -670,5 +684,22 @@ impl App {
             return true;
         }
         false
+    }
+
+    pub fn set_notification(
+        &mut self,
+        message: String,
+        severity: NotificationSeverity,
+        duration_secs: u64,
+    ) {
+        self.notification = Some(Notification::new(message, severity, duration_secs));
+    }
+
+    pub fn tick(&mut self) {
+        if let Some(notification) = &self.notification {
+            if notification.is_expired() {
+                self.notification = None;
+            }
+        }
     }
 }

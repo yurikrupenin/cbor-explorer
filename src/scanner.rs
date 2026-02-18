@@ -209,7 +209,7 @@ impl<'a> CborScanner<'a> {
         }
     }
 
-    fn adjust_ranges(item: &mut ParsedCbor, offset: usize) {
+    pub fn adjust_ranges(item: &mut ParsedCbor, offset: usize) {
         item.range.start += offset;
         item.range.end += offset;
         for child in &mut item.children {

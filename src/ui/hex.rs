@@ -115,17 +115,49 @@ pub fn handle_scroll_down(app: &mut App) {
 
 pub fn draw(frame: &mut Frame, app: &App, area: Rect) {
     let is_focused = app.focus == Focus::Hex;
+    let title = if app.is_zoomed {
+        if let Some(chunk) = app.chunks.first() {
+            format!(
+                " Hex View (Zoomed at 0x{:X}) - {} bytes ",
+                chunk.offset,
+                app.raw_bytes.len()
+            )
+        } else {
+            " Hex View (Zoomed) - No data found ".to_string()
+        }
+    } else {
+        format!(" Hex View - {} bytes ", app.raw_bytes.len())
+    };
+
+    let zoom_border_color = if app.is_zoomed {
+        app.theme.accent_color
+    } else {
+        app.theme.border_focused
+    };
+
     let border_style = if is_focused {
-        Style::default().fg(app.theme.border_focused)
+        if app.is_zoomed {
+            Style::default()
+                .fg(zoom_border_color)
+                .add_modifier(Modifier::BOLD)
+        } else {
+            Style::default().fg(app.theme.border_focused)
+        }
+    } else if app.is_zoomed {
+        Style::default().fg(zoom_border_color)
     } else {
         Style::default().fg(app.theme.border_unfocused)
     };
 
     let block = Block::default()
         .title(Span::styled(
-            format!(" Hex View - {} bytes ", app.raw_bytes.len()),
+            title,
             Style::default()
-                .fg(app.theme.header_fg)
+                .fg(if app.is_zoomed {
+                    zoom_border_color
+                } else {
+                    app.theme.header_fg
+                })
                 .add_modifier(Modifier::BOLD),
         ))
         .borders(Borders::ALL)
@@ -190,13 +222,19 @@ fn draw_hex_row(
             let byte = app.raw_bytes[byte_idx];
             let byte_type = util::get_byte_type(byte);
 
+            let is_in_zoomed_range = is_byte_in_zoomed_range(app, byte_idx);
+
             // Default color from byte type
-            let base_color = match byte_type {
-                util::ByteType::Null => app.theme.byte_colors.null,
-                util::ByteType::AsciiPrintable => app.theme.byte_colors.ascii_printable,
-                util::ByteType::AsciiWhitespace => app.theme.byte_colors.ascii_whitespace,
-                util::ByteType::AsciiOther => app.theme.byte_colors.ascii_other,
-                util::ByteType::NonAscii => app.theme.byte_colors.non_ascii,
+            let base_color = if !is_in_zoomed_range {
+                app.theme.byte_colors.null // Dimmed color for outside bytes
+            } else {
+                match byte_type {
+                    util::ByteType::Null => app.theme.byte_colors.null,
+                    util::ByteType::AsciiPrintable => app.theme.byte_colors.ascii_printable,
+                    util::ByteType::AsciiWhitespace => app.theme.byte_colors.ascii_whitespace,
+                    util::ByteType::AsciiOther => app.theme.byte_colors.ascii_other,
+                    util::ByteType::NonAscii => app.theme.byte_colors.non_ascii,
+                }
             };
 
             let mut bg_color = app.theme.bg;
@@ -245,12 +283,17 @@ fn draw_hex_row(
             };
 
             let byte_type = util::get_byte_type(byte);
-            let base_color = match byte_type {
-                util::ByteType::Null => app.theme.byte_colors.null,
-                util::ByteType::AsciiPrintable => app.theme.byte_colors.ascii_printable,
-                util::ByteType::AsciiWhitespace => app.theme.byte_colors.ascii_whitespace,
-                util::ByteType::AsciiOther => app.theme.byte_colors.ascii_other,
-                util::ByteType::NonAscii => app.theme.byte_colors.non_ascii,
+            let is_in_zoomed_range = is_byte_in_zoomed_range(app, byte_idx);
+            let base_color = if !is_in_zoomed_range {
+                app.theme.byte_colors.null
+            } else {
+                match byte_type {
+                    util::ByteType::Null => app.theme.byte_colors.null,
+                    util::ByteType::AsciiPrintable => app.theme.byte_colors.ascii_printable,
+                    util::ByteType::AsciiWhitespace => app.theme.byte_colors.ascii_whitespace,
+                    util::ByteType::AsciiOther => app.theme.byte_colors.ascii_other,
+                    util::ByteType::NonAscii => app.theme.byte_colors.non_ascii,
+                }
             };
 
             let mut bg_color = app.theme.bg;
@@ -279,4 +322,16 @@ fn draw_hex_row(
     }
 
     Line::from(spans)
+}
+
+fn is_byte_in_zoomed_range(app: &App, byte_idx: usize) -> bool {
+    if !app.is_zoomed {
+        return true;
+    }
+
+    if let Some(tree) = &app.tree {
+        tree.range.contains(&byte_idx)
+    } else {
+        false
+    }
 }

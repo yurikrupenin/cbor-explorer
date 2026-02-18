@@ -1,6 +1,7 @@
 pub mod details;
 pub mod help;
 pub mod hex;
+pub mod notification;
 pub mod search;
 pub mod shortcuts;
 pub mod status;
@@ -9,6 +10,7 @@ pub mod tree;
 
 use crate::app::{App, Focus, PopupMode};
 use crate::config;
+use crate::zoom::Zoomable;
 use color_eyre::Result;
 use crossterm::event::{KeyEvent, MouseButton, MouseEvent, MouseEventKind};
 use ratatui::{
@@ -76,6 +78,11 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
     } else if app.popups == PopupMode::Search || app.popups == PopupMode::GotoOffset {
         search::draw(frame, app, size);
     }
+
+    // Draw notification
+    if let Some(notification) = &app.notification {
+        notification::draw(frame, notification, outer_chunks[0], &app.theme);
+    }
 }
 
 pub fn handle_input(app: &mut App, key: KeyEvent) -> Result<()> {
@@ -110,6 +117,10 @@ pub fn handle_input(app: &mut App, key: KeyEvent) -> Result<()> {
                 }
                 config::KeyAction::Mode => {
                     app.toggle_scan_mode();
+                    return Ok(());
+                }
+                config::KeyAction::Zoom => {
+                    app.zoom_toggle();
                     return Ok(());
                 }
                 config::KeyAction::ToggleHexInt => {
