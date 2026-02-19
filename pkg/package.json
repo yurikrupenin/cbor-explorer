@@ -1,0 +1,20 @@
+{
+  "name": "cbx",
+  "type": "module",
+  "collaborators": [
+    "Yuri Krupenin <yuri.krupenin@gmail.com>"
+  ],
+  "description": "A TUI application for inspecting CBOR data",
+  "version": "0.1.2",
+  "license": "MIT",
+  "files": [
+    "cbx_bg.wasm",
+    "cbx.js",
+    "cbx.d.ts"
+  ],
+  "main": "cbx.js",
+  "types": "cbx.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
