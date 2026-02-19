@@ -150,12 +150,16 @@ jobs:
       - name: Build WASM
         run: wasm-pack build --target web --out-dir dist/pkg --release
 
+      # By default, wasm-pack will create a .gitignore file in target dir
+      # preventing the binary from being included in the release, which
+      # is opposite of what we want.
       - name: Prepare Distribution
         run: |
           cp www/index.html dist/
           cp test/data/mission_log.cbor dist/example.cbor
           cp README.md dist/README.md
           cp *.gif dist/
+          rm dist/pkg/.gitignore
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
