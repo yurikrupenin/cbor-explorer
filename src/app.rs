@@ -70,13 +70,7 @@ pub struct App {
 }
 
 impl App {
-    pub fn new(path: &Path) -> Result<Self> {
-        let raw_bytes = std::fs::read(path)?;
-        let file_name = path
-            .file_name()
-            .map(|s| s.to_string_lossy().to_string())
-            .unwrap_or_else(|| "unknown".to_string());
-
+    pub fn new(file_name: String, raw_bytes: Vec<u8>) -> Result<Self> {
         // Try to parse CBOR using custom parser
         // Initialize scanner and chunks
         // Default to Single mode as requested
@@ -93,8 +87,17 @@ impl App {
         };
 
         // Initialize themes
-        let themes = vec![
-            Theme::terminal_default(),
+        let mut themes = Vec::new();
+
+        // Javascript xterm default theme is not pretty,
+        // and it's not like it is an actual user preference.
+        //
+        // See also: default theme selection for wasm targets
+        // in config_store.rs
+        #[cfg(not(target_arch = "wasm32"))]
+        themes.push(Theme::terminal_default());
+
+        themes.extend(vec![
             Theme::tokyo_night(),
             Theme::tokyo_night_storm(),
             Theme::tokyo_night_light(),
@@ -108,7 +111,7 @@ impl App {
             Theme::gruvbox(),
             Theme::one_dark(),
             Theme::catppuccin(),
-        ];
+        ]);
 
         // Load config
         let config_store = ConfigStore::new();
@@ -165,6 +168,15 @@ impl App {
 
         app.rebuild_tree();
         Ok(app)
+    }
+
+    pub fn load_from_file(path: &Path) -> Result<Self> {
+        let raw_bytes = std::fs::read(path)?;
+        let file_name = path
+            .file_name()
+            .map(|s| s.to_string_lossy().to_string())
+            .unwrap_or_else(|| "unknown".to_string());
+        Self::new(file_name, raw_bytes)
     }
 
     pub fn toggle_scan_mode(&mut self) {

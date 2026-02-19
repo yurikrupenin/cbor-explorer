@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CBOR Explorer (WASM)</title>
+    <meta name="description" content="Online CBOR (Concise Binary Object Representation) explorer and debugger.">
+    <meta name="keywords"
+        content="CBOR, CBOR Explorer, CBOR Inspector, CBOR Viewer, CBOR Debugger, Concise Binary Object Representation, Rust, Ratatui, WebAssembly, WASM, TUI">
+    <meta name="author" content="Yuri Krupenin">
+    <meta name="robots" content="index, follow">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/firacode@6.2.0/distr/fira_code.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        :root {
+            --bg-color: #1a1b26;
+            --panel-bg: #24283b;
+            --text-color: #c0caf5;
+            --accent-color: #7aa2f7;
+            --accent-hover: #bb9af7;
+            --border-color: #414868;
+        }
+
+        body { 
+            margin: 0; 
+            background-color: var(--bg-color); 
+            color: var(--text-color); 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            display: flex; 
+            flex-direction: column; 
+            height: 100vh; 
+            overflow: hidden; 
+        }
+
+        #controls { 
+            padding: 10px 20px; 
+            background: var(--panel-bg); 
+            border-bottom: 1px solid var(--border-color); 
+            display: flex; 
+            align-items: center; 
+            gap: 15px; 
+            height: 50px;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .spacer {
+            flex: 1;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.2rem;
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        #terminal { 
+            flex: 1; 
+            width: 100%; 
+            overflow: hidden; 
+            background-color: var(--bg-color);
+            font-family: 'Fira Code', monospace; /* Fallback mainly for container */
+        }
+
+        /* File Input Styling */
+        input[type="file"] {
+            display: none;
+        }
+
+        .btn {
+            background: var(--accent-color);
+            color: #15161e;
+            border: none;
+            padding: 8px 16px;
+            cursor: pointer;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: background 0.2s, transform 0.1s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn:hover { 
+            background: var(--accent-hover); 
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .btn-secondary {
+            background: var(--border-color);
+            color: var(--text-color);
+        }
+
+        .btn-secondary:hover {
+            background: #565f89;
+        }
+
+        .btn-icon {
+            padding: 8px;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+        }
+
+        /* Modal Styling */
+        #modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(2px);
+        }
+
+        #modal-content {
+            background: var(--panel-bg);
+            width: 80%;
+            max-width: 800px;
+            height: 80%;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+
+        #modal-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #modal-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--accent-color);
+        }
+
+        #modal-close {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+        #modal-close:hover { color: #fff; }
+
+        #modal-body {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+            font-family: 'Segoe UI', sans-serif;
+            line-height: 1.6;
+        }
+
+        /* Basic Markdown Styling */
+        #modal-body h1, #modal-body h2, #modal-body h3 { color: var(--accent-color); margin-top: 1.5em; }
+        #modal-body code { background: #1a1b26; padding: 2px 4px; border-radius: 4px; font-family: monospace; }
+        #modal-body pre { background: #1a1b26; padding: 10px; border-radius: 6px; overflow-x: auto; }
+        #modal-body a { color: var(--accent-hover); }
+        #modal-body blockquote { border-left: 4px solid var(--border-color); margin: 0; padding-left: 15px; color: #a9b1d6; }
+        #modal-body img { max-width: 100%; height: auto; display: block; margin: 10px 0; border-radius: 4px; border: 1px solid var(--border-color); }
+
+    </style>
+</head>
+<body>
+    <div id="controls">
+        <label for="file-upload" class="btn">
+            <i class="fas fa-folder-open"></i> Load File
+        </label>
+        <input type="file" id="file-upload" />
+        
+        <button id="reset-btn" class="btn btn-secondary">
+            <i class="fas fa-undo"></i> Reset
+        </button>
+
+        <div class="spacer"></div>
+        
+        <h1>CBOR Explorer</h1>
+        
+        <div class="spacer"></div>
+
+        <button id="help-btn" class="btn btn-secondary btn-icon" title="Help">
+            <i class="fas fa-question"></i>
+        </button>
+
+        <a href="https://github.com/yurikrupenin/cbor-explorer" target="_blank" class="btn btn-secondary btn-icon" title="GitHub Repo">
+            <i class="fab fa-github"></i>
+        </a>
+    </div>
+
+    <div id="terminal"></div>
+
+    <!-- Help Modal -->
+    <div id="modal-overlay">
+        <div id="modal-content">
+            <div id="modal-header">
+                <span id="modal-title">Help / Documentation</span>
+                <button id="modal-close"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="modal-body">Loading README...</div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
+    <!-- Simple Markdown Parser -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <script type="module">
+        import init, { init_app, on_key, resize } from './pkg/cbx.js';
+
+        let term;
+        let fitAddon;
+
+        async function run() {
+            await init();
+
+            term = new Terminal({
+                fontFamily: '"Fira Code", Menlo, Monaco, "Courier New", monospace',
+                fontSize: 14,
+                cursorBlink: true,
+                theme: {
+                    background: '#1a1b26',
+                    foreground: '#c0caf5',
+                    cursor: '#c0caf5',
+                    selection: '#33467C',
+                    black: '#15161E',
+                    red: '#f7768e',
+                    green: '#9ece6a',
+                    yellow: '#e0af68',
+                    blue: '#7aa2f7',
+                    magenta: '#bb9af7',
+                    cyan: '#7dcfff',
+                    white: '#a9b1d6',
+                    brightBlack: '#414868',
+                    brightRed: '#f7768e',
+                    brightGreen: '#9ece6a',
+                    brightYellow: '#e0af68',
+                    brightBlue: '#7aa2f7',
+                    brightMagenta: '#bb9af7',
+                    brightCyan: '#7dcfff',
+                    brightWhite: '#c0caf5'
+                }
+            });
+
+            fitAddon = new FitAddon.FitAddon();
+            term.loadAddon(fitAddon);
+            term.open(document.getElementById('terminal'));
+            fitAddon.fit();
+
+            // Handle resizing
+            window.addEventListener('resize', () => {
+                fitAddon.fit();
+                resize(term.cols, term.rows);
+            });
+
+            // Handle input
+            term.onKey(e => {
+                const ev = e.domEvent;
+                // Prevent default browser actions for some keys
+                if (ev.key === 'Tab' || ev.key === 'ArrowUp' || ev.key === 'ArrowDown') {
+                    // ev.preventDefault(); // Optional, depends on desired browser behavior behavior
+                }
+                on_key(ev.key, ev.ctrlKey, ev.altKey, ev.shiftKey);
+            });
+
+            // Expose function for Rust to write to terminal
+            window.writeToTerminal = (data) => {
+                term.write(data);
+            };
+
+            // Load default example
+            loadExample();
+            
+            // Focus terminal on click
+            document.getElementById('terminal').addEventListener('click', () => {
+                term.focus();
+            });
+        }
+
+        async function loadExample() {
+            try {
+                // Fetch example file relative to this page
+                const response = await fetch('example.cbor');
+                if (!response.ok) throw new Error('Failed to load example.cbor');
+                const buffer = await response.arrayBuffer();
+                const bytes = new Uint8Array(buffer);
+                
+                term.reset();
+                init_app("example.cbor", bytes);
+                resize(term.cols, term.rows);
+                term.focus();
+            } catch (err) {
+                console.error(err);
+                term.write(`\r\n\x1b[31mError loading example: ${err}\x1b[0m\r\n`);
+            }
+        }
+
+        document.getElementById('file-upload').addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const buffer = e.target.result;
+                const bytes = new Uint8Array(buffer);
+                
+                term.reset();
+                try {
+                    init_app(file.name, bytes);
+                    resize(term.cols, term.rows);
+                    term.focus();
+                } catch (err) {
+                    console.error(err);
+                    term.write(`\r\n\x1b[31mError loading file: ${err}\x1b[0m\r\n`);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+            // Reset input so same file can be selected again
+            event.target.value = ''; 
+        });
+
+        document.getElementById('reset-btn').addEventListener('click', loadExample);
+
+        // Help Modal Logic
+        const modal = document.getElementById('modal-overlay');
+        const helpBtn = document.getElementById('help-btn');
+        const closeBtn = document.getElementById('modal-close');
+        
+        helpBtn.addEventListener('click', async () => {
+             modal.style.display = 'flex';
+             const body = document.getElementById('modal-body');
+             body.innerHTML = 'Loading...';
+             
+             try {
+                const res = await fetch('README.md');
+                if (!res.ok) throw new Error("Could not load README.md");
+                const text = await res.text();
+                body.innerHTML = marked.parse(text);
+             } catch (e) {
+                body.innerHTML = `<p style="color:var(--accent-color)">Error loading documentation: ${e.message}</p>`;
+             }
+        });
+
+        closeBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+            term.focus();
+        });
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+                term.focus();
+            }
+        });
+
+        run();
+    </script>
+</body>
+</html>

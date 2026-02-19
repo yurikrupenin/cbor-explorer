@@ -1,19 +1,9 @@
-mod app;
-mod cbor_parser;
-mod cbor_tree;
-mod config;
-mod config_store;
-mod scanner;
-mod theme;
-mod ui;
-mod util;
-mod zoom;
-
-use app::App;
+use cbx::app::App;
+use cbx::run_app;
 use clap::Parser;
 use color_eyre::Result;
 use crossterm::{
-    event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyModifiers},
+    event::{DisableMouseCapture, EnableMouseCapture},
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
@@ -58,7 +48,7 @@ fn main() -> Result<()> {
     let mut terminal = Terminal::new(backend)?;
 
     // Create app and run
-    let mut app = App::new(&args.file)?;
+    let mut app = App::load_from_file(&args.file)?;
     let result = run_app(&mut terminal, &mut app);
 
     // Restore terminal
@@ -75,35 +65,4 @@ fn main() -> Result<()> {
     }
 
     Ok(())
-}
-
-fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> Result<()> {
-    loop {
-        terminal.draw(|f| ui::draw(f, app))?;
-
-        if event::poll(std::time::Duration::from_millis(100))? {
-            match event::read()? {
-                Event::Key(key) => {
-                    if key.modifiers.contains(KeyModifiers::CONTROL)
-                        && key.code == KeyCode::Char('c')
-                    {
-                        return Ok(());
-                    }
-
-                    // Delegate input handling to UI widgets
-                    ui::handle_input(app, key)?;
-                }
-                Event::Mouse(mouse) => {
-                    ui::handle_mouse_input(app, mouse)?;
-                }
-                _ => {}
-            }
-        }
-
-        app.tick();
-
-        if app.should_quit {
-            return Ok(());
-        }
-    }
 }

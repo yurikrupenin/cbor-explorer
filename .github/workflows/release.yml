@@ -129,3 +129,38 @@ jobs:
             *.zip
             *.deb
             snap_build/*.snap
+
+  wasm:
+    name: Build WASM & Deploy
+    needs: [ci]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Install wasm-pack
+        uses: jetli/wasm-pack-action@v0.4.0
+        with:
+          version: 'latest'
+
+      - name: Build WASM
+        run: wasm-pack build --target web --out-dir www/pkg --release
+
+      - name: Prepare Distribution
+        run: |
+          mkdir dist
+          cp www/index.html dist/
+          cp -r www/pkg dist/pkg
+          cp test/data/mission_log.cbor dist/example.cbor
+          cp README.md dist/README.md
+          cp *.gif dist/
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist

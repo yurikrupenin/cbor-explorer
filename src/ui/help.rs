@@ -1,7 +1,7 @@
 use crate::app::App;
 use crate::config;
+use crate::input::KeyEvent;
 use color_eyre::Result;
-use crossterm::event::KeyEvent;
 use ratatui::{
     layout::Rect,
     style::{Color, Modifier, Style, Stylize},

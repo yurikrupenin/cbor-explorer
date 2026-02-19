@@ -1,6 +1,6 @@
 use crate::app::{App, PopupMode};
+use crate::input::{KeyCode, KeyEvent};
 use color_eyre::Result;
-use crossterm::event::{KeyCode, KeyEvent};
 use ratatui::{
     layout::Rect,
     style::{Color, Modifier, Style, Stylize},

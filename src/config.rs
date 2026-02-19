@@ -1,4 +1,4 @@
-use crossterm::event::KeyCode;
+use crate::input::{KeyCode, KeyEvent};
 
 // Confidence levels for CBOR data
 // (see scanner.rs for details)
@@ -84,8 +84,6 @@ pub enum KeyAction {
     Char(char),
     None,
 }
-
-use crossterm::event::KeyEvent;
 
 pub fn resolve_key(key: KeyEvent) -> KeyAction {
     let code = key.code;

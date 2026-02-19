@@ -1,8 +1,8 @@
 use crate::app::{App, Focus};
 use crate::cbor_tree::{CborNode, CborType};
+use crate::input::KeyEvent;
 use crate::{config, util};
 use color_eyre::Result;
-use crossterm::event::KeyEvent;
 use ratatui::{
     layout::Rect,
     style::{Color, Modifier, Style, Stylize},

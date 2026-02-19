@@ -10,9 +10,9 @@ pub mod tree;
 
 use crate::app::{App, Focus, PopupMode};
 use crate::config;
+use crate::input::{KeyEvent, MouseButton, MouseEvent, MouseEventKind};
 use crate::zoom::Zoomable;
 use color_eyre::Result;
-use crossterm::event::{KeyEvent, MouseButton, MouseEvent, MouseEventKind};
 use ratatui::{
     layout::{Constraint, Direction, Layout},
     Frame,

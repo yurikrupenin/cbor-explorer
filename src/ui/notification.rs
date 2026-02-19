@@ -6,7 +6,11 @@ use ratatui::{
     widgets::{Block, Borders, Clear, Paragraph},
     Frame,
 };
+#[cfg(not(target_arch = "wasm32"))]
 use std::time::{Duration, Instant};
+
+#[cfg(target_arch = "wasm32")]
+use std::time::Duration;
 
 const NOTIFICATION_HEIGHT: u16 = 3;
 const NOTIFICATION_HORIZONTAL_PADDING: u16 = 4;
@@ -23,6 +27,7 @@ pub enum NotificationSeverity {
 pub struct Notification {
     pub message: String,
     pub severity: NotificationSeverity,
+    #[cfg(not(target_arch = "wasm32"))]
     pub created_at: Instant,
     pub duration: Duration,
 }
@@ -32,13 +37,18 @@ impl Notification {
         Self {
             message,
             severity,
+            #[cfg(not(target_arch = "wasm32"))]
             created_at: Instant::now(),
             duration: Duration::from_secs(duration_secs),
         }
     }
 
     pub fn is_expired(&self) -> bool {
-        self.created_at.elapsed() > self.duration
+        #[cfg(not(target_arch = "wasm32"))]
+        return self.created_at.elapsed() > self.duration;
+
+        #[cfg(target_arch = "wasm32")]
+        return false; // TODO: no timer support on WASM currently -> notifications get stuck
     }
 }
 

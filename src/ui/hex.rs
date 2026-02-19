@@ -1,9 +1,9 @@
 use crate::app::{App, Focus};
 use crate::cbor_tree::CborNode;
 use crate::config::{self, BYTES_PER_ROW};
+use crate::input::KeyEvent;
 use crate::util;
 use color_eyre::Result;
-use crossterm::event::KeyEvent;
 use ratatui::{
     layout::Rect,
     style::{Color, Modifier, Style, Stylize},
