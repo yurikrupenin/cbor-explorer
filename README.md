@@ -1,6 +1,6 @@
 # cbx: CBOR Explorer
 
-A TUI application for inspecting CBOR (Concise Binary Object Representation) files, built with Rust and Ratatui.
+A TUI application for inspecting CBOR (Concise Binary Object Representation) files, built with Rust and Ratatui. An online version is [available here](https://yurikrupenin.github.io/cbor-explorer/) (a bit rough around the edges).
 
 ![A demo GIF recording](demo.gif)
 
