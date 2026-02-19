@@ -148,13 +148,11 @@ jobs:
           version: 'latest'
 
       - name: Build WASM
-        run: wasm-pack build --target web --out-dir www/pkg --release
+        run: wasm-pack build --target web --out-dir dist/pkg --release
 
       - name: Prepare Distribution
         run: |
-          mkdir dist
           cp www/index.html dist/
-          cp -r www/pkg dist/pkg
           cp test/data/mission_log.cbor dist/example.cbor
           cp README.md dist/README.md
           cp *.gif dist/
